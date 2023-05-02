@@ -103,9 +103,25 @@ describe("GET by given database ID", () => {
 
 // the 'url'
 describe("GET by given generated ID", () => {
-    test("User with Generated ID exists", async () => {});
+    test("User with Generated ID exists", async () => {
+        const getAllUsers = await supertest(app).get("/users");
+        const { body } = getAllUsers;
+        const validId = body[0]["shortenedURL"];
+        const userWithGenId = await supertest(app).get(`/users/id/${validId}`);
+        // found
+        expect(userWithGenId.statusCode).toBe(200);
+    });
 
-    test("User with Generated ID does not exist", async () => {});
+    test("User with Generated ID does not exist", async () => {
+        const nonexistentId = "nonexistentid";
+        const userWithoutGenId = await supertest(app).get(
+            `/users/id/${nonexistentId}`
+        );
+
+        // not found
+        expect(userWithoutGenId.statusCode).toBe(404);
+        expect(userWithoutGenId.body["message"]).toBe("User does not exist");
+    });
 });
 
 // username
