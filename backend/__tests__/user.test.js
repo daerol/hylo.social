@@ -18,7 +18,13 @@ describe("POST (of user)", () => {
                 username: "test123",
                 password: "123456",
             });
-        expect(filledUpCorrectlyResponse.statusCode).toBe(200);
+        const { statusCode, body } = filledUpCorrectlyResponse;
+        console.log("body", body);
+        expect(statusCode).toBe(200);
+        expect(body).toHaveProperty("shortenedURL");
+        expect(body).toHaveProperty("message");
+        expect(body).toHaveProperty("id");
+        expect(body["message"]).toBe("User created");
     });
 
     test("Username is taken", async () => {
@@ -30,10 +36,11 @@ describe("POST (of user)", () => {
 
         const usernameTaken = await supertest(app).post("/users").send({
             email: "test2@gmail.com",
-            username: "hahaah",
+            username: "testss",
             password: "123456",
         });
-        expect(usernameTaken.statusCode).toBe(500);
+        expect(usernameTaken.statusCode).toBe(400);
+        expect(usernameTaken.body["message"]).toBe("Username is taken");
     });
 
     test("Email is taken", async () => {
@@ -42,14 +49,36 @@ describe("POST (of user)", () => {
             username: "tests2",
             password: "123456",
         });
-        expect(filledUpCorrectlyResponse.statusCode).toBe(200);
 
         const usernameTaken = await supertest(app).post("/users").send({
             email: "test3@gmail.com",
             username: "tests32",
             password: "123456",
         });
-        expect(usernameTaken.statusCode).toBe(500);
+        expect(usernameTaken.statusCode).toBe(400);
+        expect(usernameTaken.body["message"]).toBe("Email is taken");
+    });
+
+    test("Invalid email", async () => {
+        const invalidEmail = await supertest(app).post("/users").send({
+            email: "tescom",
+            username: "tests2",
+            password: "11122",
+        });
+        expect(invalidEmail.statusCode).toBe(400);
+        expect(invalidEmail.body["message"]).toBe("Invalid email");
+    });
+
+    test("Invalid password", async () => {
+        const invalidPassword = await supertest(app).post("/users").send({
+            email: "test3@gmail.com",
+            username: "tests2",
+            password: "11122",
+        });
+        expect(invalidPassword.statusCode).toBe(400);
+        expect(invalidPassword.body["message"]).toBe(
+            "Password has to be at least 6 characters"
+        );
     });
 });
 

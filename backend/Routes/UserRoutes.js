@@ -7,9 +7,9 @@ const userController = require("../Controllers/UserControllers");
 
 // ===========================all routes===========================
 // =========================Create=========================
-router.post("/",userController.createUser)
+router.post("/", userController.createUser);
 // =========================Read=========================
-
+router.get("/", userController.findAllUsers);
 // =========================Update=========================
 
 // =========================Delete=========================

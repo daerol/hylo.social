@@ -19,6 +19,7 @@ app.get("/", (req, res) => {
 });
 
 // ============for user============
+app.use("/users",require("./Routes/UserRoutes"))
 
 // ============for links============
 
