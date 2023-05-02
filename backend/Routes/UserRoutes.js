@@ -10,8 +10,9 @@ const userController = require("../Controllers/UserControllers");
 router.post("/", userController.createUser);
 // =========================Read=========================
 router.get("/", userController.findAllUsers);
-router.get("/:userId", userController.findUserByDbId);
+router.get("/db/:userId", userController.findUserByDbId);
 router.get("/id/:genId", userController.findUserByGenId);
+router.get("/:username",userController.findUserByUserName)
 // =========================Update=========================
 
 // =========================Delete=========================

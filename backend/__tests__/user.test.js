@@ -76,7 +76,7 @@ describe("GET by given database ID", () => {
         const getAllUsers = await supertest(app).get("/users");
         const { body } = getAllUsers;
         const validId = body[0]["_id"];
-        const userWithDbId = await supertest(app).get(`/users/${validId}`);
+        const userWithDbId = await supertest(app).get(`/users/db/${validId}`);
         // found
         expect(userWithDbId.statusCode).toBe(200);
     });
@@ -94,7 +94,7 @@ describe("GET by given database ID", () => {
 
     test("User with Database ID is invalid", async () => {
         const invalidId = "123456";
-        const userWithoutDbId = await supertest(app).get(`/users/${invalidId}`);
+        const userWithoutDbId = await supertest(app).get(`/users/db/${invalidId}`);
 
         // does not exist
         expect(userWithoutDbId.statusCode).toBe(500);
@@ -126,9 +126,25 @@ describe("GET by given generated ID", () => {
 
 // username
 describe("GET by username", () => {
-    test("User with username exists", async () => {});
+    test("User with username exists", async () => {
+        const getAllUsers = await supertest(app).get("/users");
+        const { body } = getAllUsers;
+        const validUserName = body[0]["username"];
+        const userWithUsername = await supertest(app).get(`/users/${validUserName}`);
+        // found
+        expect(userWithUsername.statusCode).toBe(200);
+    });
 
-    test("User with username does not exist", async () => {});
+    test("User with username does not exist", async () => {
+        const nonexistentUsername = "nonexistentname";
+        const userWithoutUserName = await supertest(app).get(
+            `/users/${nonexistentUsername}`
+        );
+
+        // not found
+        expect(userWithoutUserName.statusCode).toBe(404);
+        expect(userWithoutUserName.body["message"]).toBe("User does not exist");
+    });
 });
 
 /* Connecting to the database before each test. */

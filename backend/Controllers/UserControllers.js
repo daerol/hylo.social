@@ -123,7 +123,28 @@ const findUserByGenId = async (req, res) => {
     }
 };
 
+const findUserByUserName = async (req, res) => {
+    const { username } = req.params;
+    try {
+        const validUser = await User.findOne({ username });
+        if (validUser == null) {
+            return res.status(404).json({ message: "User does not exist" });
+        }
+        return res.status(200).json(validUser);
+    } catch (err) {
+        return res.status(500).json({
+            message: err,
+        });
+    }
+};
+
 // =========================Update=========================
 // =========================Delete=========================
 
-module.exports = { createUser, findAllUsers, findUserByDbId,findUserByGenId };
+module.exports = {
+    createUser,
+    findAllUsers,
+    findUserByDbId,
+    findUserByGenId,
+    findUserByUserName,
+};
