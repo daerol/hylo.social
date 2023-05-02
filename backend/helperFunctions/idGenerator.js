@@ -1,3 +1,6 @@
-var ObjectID = require("mongodb").ObjectID;
+var mongoose = require("mongoose");
+const newObjectId = () => {
+    return new mongoose.Types.ObjectId();
+};
 
-module.exports = { ObjectID };
+module.exports = { newObjectId };

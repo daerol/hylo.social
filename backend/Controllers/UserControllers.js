@@ -67,7 +67,7 @@ const createUser = async (req, res) => {
 
         await User.create(newUser).then((createdUser) => {
             console.log(createdUser);
-            console.log("typeof createdUser._id",typeof createdUser._id);
+            console.log("typeof createdUser._id", typeof createdUser._id);
             return res.status(200).json({
                 message: "User created",
                 id: createdUser._id,
@@ -93,7 +93,22 @@ const findAllUsers = async (req, res) => {
     }
 };
 
+const findUserByDbId = async (req, res) => {
+    const { userId } = req.params;
+    try {
+        const validUser = await User.findById(userId);
+        if (validUser == null) {
+            return res.status(404).json({ message: "User does not exist" });
+        }
+        return res.status(200).json(validUser);
+    } catch (err) {
+        return res.status(500).json({
+            message: err,
+        });
+    }
+};
+
 // =========================Update=========================
 // =========================Delete=========================
 
-module.exports = { createUser, findAllUsers };
+module.exports = { createUser, findAllUsers, findUserByDbId };

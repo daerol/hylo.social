@@ -2,7 +2,7 @@ const supertest = require("supertest");
 const app = require("../app");
 const User = require("../Models/UserModel");
 const { seedUsers } = require("../helperFunctions/dbHelpers");
-const { ObjectId } = require("../helperFunctions/idGenerator");
+const { newObjectId } = require("../helperFunctions/idGenerator");
 
 const {
     resetTestDB,
@@ -82,19 +82,20 @@ describe("GET by given database ID", () => {
     });
 
     test("User with Database ID does not exist", async () => {
-        const nonexistentId = ObjectId();
-        const userWithoutDbId = await supertest(app).get(`/users/${nonexistentId}`);
+        const nonexistentId = newObjectId();
+        const userWithoutDbId = await supertest(app).get(
+            `/users/${nonexistentId}`
+        );
 
         // not found
         expect(userWithoutDbId.statusCode).toBe(404);
         expect(userWithoutDbId.body["message"]).toBe("User does not exist");
-
     });
 
     test("User with Database ID is invalid", async () => {
-        const invalidId = "123456"
+        const invalidId = "123456";
         const userWithoutDbId = await supertest(app).get(`/users/${invalidId}`);
-        
+
         // does not exist
         expect(userWithoutDbId.statusCode).toBe(500);
     });
