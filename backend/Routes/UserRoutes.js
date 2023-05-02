@@ -11,6 +11,7 @@ router.post("/", userController.createUser);
 // =========================Read=========================
 router.get("/", userController.findAllUsers);
 router.get("/:userId", userController.findUserByDbId);
+router.get("/id/:genId", userController.findUserByGenId);
 // =========================Update=========================
 
 // =========================Delete=========================
