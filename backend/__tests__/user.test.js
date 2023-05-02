@@ -71,6 +71,49 @@ describe("POST (of user)", () => {
     });
 });
 
+describe("GET by given database ID", () => {
+    test("User with Database ID exists", async () => {
+        const getAllUsers = await supertest(app).get("/users");
+        const { body } = getAllUsers;
+        const validId = body[0]["_id"];
+        const userWithDbId = await supertest(app).get(`/users/${validId}`);
+        // found
+        expect(userWithDbId.statusCode).toBe(200);
+    });
+
+    test("User with Database ID does not exist", async () => {
+        const nonexistentId = ObjectId();
+        const userWithoutDbId = await supertest(app).get(`/users/${nonexistentId}`);
+
+        // not found
+        expect(userWithoutDbId.statusCode).toBe(404);
+        expect(userWithoutDbId.body["message"]).toBe("User does not exist");
+
+    });
+
+    test("User with Database ID is invalid", async () => {
+        const invalidId = "123456"
+        const userWithoutDbId = await supertest(app).get(`/users/${invalidId}`);
+        
+        // does not exist
+        expect(userWithoutDbId.statusCode).toBe(500);
+    });
+});
+
+// the 'url'
+describe("GET by given generated ID", () => {
+    test("User with Generated ID exists", async () => {});
+
+    test("User with Generated ID does not exist", async () => {});
+});
+
+// username
+describe("GET by username", () => {
+    test("User with username exists", async () => {});
+
+    test("User with username does not exist", async () => {});
+});
+
 /* Connecting to the database before each test. */
 beforeEach(async () => {
     await initialiseConnection().then(async () => {
