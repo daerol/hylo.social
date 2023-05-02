@@ -116,7 +116,7 @@ describe("GET by username", () => {
 });
 
 /* Connecting to the database before each test. */
-beforeEach(async () => {
+beforeAll(async () => {
     await initialiseConnection().then(async () => {
         await resetTestDB();
         await seedUsers();
@@ -124,7 +124,7 @@ beforeEach(async () => {
 });
 
 /* Closing database connection after each test. */
-afterEach(async () => {
+afterAll(async () => {
     await resetTestDB().then(async () => {
         await cutConnection();
     });
