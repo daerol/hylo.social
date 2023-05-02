@@ -1,6 +1,7 @@
 const supertest = require("supertest");
 const app = require("../app");
 const User = require("../Models/UserModel");
+const { seedUsers } = require("../helperFunctions/dbHelpers");
 const { ObjectId } = require("../helperFunctions/idGenerator");
 
 const {
@@ -14,7 +15,7 @@ describe("POST (of user)", () => {
         const filledUpCorrectlyResponse = await supertest(app)
             .post("/users")
             .send({
-                email: "test@gmail.com",
+                email: "testuser@gmail.com",
                 username: "test123",
                 password: "123456",
             });
@@ -28,15 +29,9 @@ describe("POST (of user)", () => {
     });
 
     test("Username is taken", async () => {
-        await supertest(app).post("/users").send({
-            email: "test1@gmail.com",
-            username: "testss",
-            password: "123456",
-        });
-
         const usernameTaken = await supertest(app).post("/users").send({
-            email: "test2@gmail.com",
-            username: "testss",
+            email: "test2@testusername.com",
+            username: "user1",
             password: "123456",
         });
         expect(usernameTaken.statusCode).toBe(400);
@@ -44,25 +39,19 @@ describe("POST (of user)", () => {
     });
 
     test("Email is taken", async () => {
-        await supertest(app).post("/users").send({
+        const emailTaken = await supertest(app).post("/users").send({
             email: "test3@gmail.com",
-            username: "tests2",
+            username: "emailtaken",
             password: "123456",
         });
-
-        const usernameTaken = await supertest(app).post("/users").send({
-            email: "test3@gmail.com",
-            username: "tests32",
-            password: "123456",
-        });
-        expect(usernameTaken.statusCode).toBe(400);
-        expect(usernameTaken.body["message"]).toBe("Email is taken");
+        expect(emailTaken.statusCode).toBe(400);
+        expect(emailTaken.body["message"]).toBe("Email is taken");
     });
 
     test("Invalid email", async () => {
         const invalidEmail = await supertest(app).post("/users").send({
             email: "tescom",
-            username: "tests2",
+            username: "invalidemail",
             password: "11122",
         });
         expect(invalidEmail.statusCode).toBe(400);
@@ -71,8 +60,8 @@ describe("POST (of user)", () => {
 
     test("Invalid password", async () => {
         const invalidPassword = await supertest(app).post("/users").send({
-            email: "test3@gmail.com",
-            username: "tests2",
+            email: "testingemail@gmail.com",
+            username: "invalidpass",
             password: "11122",
         });
         expect(invalidPassword.statusCode).toBe(400);
@@ -86,6 +75,7 @@ describe("POST (of user)", () => {
 beforeEach(async () => {
     await initialiseConnection().then(async () => {
         await resetTestDB();
+        await seedUsers();
     });
 });
 

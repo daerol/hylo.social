@@ -1,8 +1,8 @@
 // for testing
 
 const mongoose = require("mongoose");
-const User = require("../Models/UserModel")
-const Link = require("../Models/LinkModel")
+const User = require("../Models/UserModel");
+const Link = require("../Models/LinkModel");
 
 const resetTestDB = async () => {
     await User.deleteMany({});
