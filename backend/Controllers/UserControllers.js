@@ -1,4 +1,5 @@
 const User = require("../Models/UserModel");
+const bcrypt = require("bcryptjs");
 
 // =========================Helper functions=========================
 const { allUsers } = require("../helperFunctions/dbHelpers");
@@ -55,11 +56,14 @@ const createUser = async (req, res) => {
         // });
         // // auto generate a url link
 
+        const salt = await bcrypt.genSalt(10);
+        const hashedPassword = await bcrypt.hash(password, salt);
+
         const shortenedURL = generateShortenedID();
         const newUser = new User({
             email,
             username,
-            password,
+            password:hashedPassword,
             shortenedURL,
         });
 
