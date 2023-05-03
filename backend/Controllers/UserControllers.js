@@ -183,7 +183,7 @@ const changeUsername = async (req, res) => {
             return res.status(500).json({ message: "Username already exists" });
         }
 
-        targetUser
+        User
             .updateOne(
                 {
                     _id: userId,
