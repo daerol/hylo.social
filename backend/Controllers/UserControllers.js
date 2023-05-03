@@ -56,8 +56,6 @@ const createUser = async (req, res) => {
         // // auto generate a url link
 
         const shortenedURL = generateShortenedID();
-        console.log(shortenedURL);
-
         const newUser = new User({
             email,
             username,
@@ -173,6 +171,32 @@ const changeUsername = async (req, res) => {
     }
 };
 
+const refreshShortenedURL = async (req, res) => {
+    const { userId } = req.params;
+    try {
+        const targetUser = await User.findById(userId);
+        if (targetUser == null) {
+            return res.status(404).json({ message: "User does not exist" });
+        }
+        const shortenedURL = generateShortenedID();
+        User.updateOne(
+            { _id: userId },
+            {
+                shortenedURL,
+            }
+        ).then((result) => {
+            return res.status(200).json({
+                message: "URL successfully refreshed",
+                shortenedURL,
+            });
+        });
+    } catch (err) {
+        return res.status(500).json({
+            message: err,
+        });
+    }
+};
+
 // =========================Delete=========================
 
 module.exports = {
@@ -181,5 +205,6 @@ module.exports = {
     findUserByDbId,
     findUserByGenId,
     findUserByUserName,
-    changeUsername
+    changeUsername,
+    refreshShortenedURL
 };

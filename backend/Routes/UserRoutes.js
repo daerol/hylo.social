@@ -12,9 +12,10 @@ router.post("/", userController.createUser);
 router.get("/", userController.findAllUsers);
 router.get("/db/:userId", userController.findUserByDbId);
 router.get("/id/:genId", userController.findUserByGenId);
-router.get("/:username",userController.findUserByUserName)
+router.get("/:username", userController.findUserByUserName);
 // =========================Update=========================
-router.put("/:userId",userController.changeUsername)
+router.put("/:userId", userController.changeUsername);
+router.put("/r/:userId", userController.refreshShortenedURL);
 // =========================Delete=========================
 
 // ===========================export routes===========================

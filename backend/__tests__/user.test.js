@@ -221,7 +221,7 @@ describe("Refreshing gen ID of user", () => {
 
         expect(changeUserGenID.statusCode).toBe(200);
         expect(changeUserGenID.body["message"]).toBe(
-            "Code successfully refreshed"
+            "URL successfully refreshed"
         );
         expect(changeUserGenID.body["shortenedURL"]).not.toBe(userPreviousGenId)
     });
