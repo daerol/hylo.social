@@ -94,7 +94,9 @@ describe("GET by given database ID", () => {
 
     test("User with Database ID is invalid", async () => {
         const invalidId = "123456";
-        const userWithoutDbId = await supertest(app).get(`/users/db/${invalidId}`);
+        const userWithoutDbId = await supertest(app).get(
+            `/users/db/${invalidId}`
+        );
 
         // does not exist
         expect(userWithoutDbId.statusCode).toBe(500);
@@ -130,7 +132,9 @@ describe("GET by username", () => {
         const getAllUsers = await supertest(app).get("/users");
         const { body } = getAllUsers;
         const validUserName = body[0]["username"];
-        const userWithUsername = await supertest(app).get(`/users/${validUserName}`);
+        const userWithUsername = await supertest(app).get(
+            `/users/${validUserName}`
+        );
         // found
         expect(userWithUsername.statusCode).toBe(200);
     });
@@ -144,6 +148,50 @@ describe("GET by username", () => {
         // not found
         expect(userWithoutUserName.statusCode).toBe(404);
         expect(userWithoutUserName.body["message"]).toBe("User does not exist");
+    });
+});
+
+// change username
+describe("Changing of username", () => {
+    test("User does not exist", async () => {
+        const nonexistentId = newObjectId();
+        const nonexistentUser = await supertest(app)
+            .put(`/users/${nonexistentId}`)
+            .send({
+                username: "invalidpass",
+            });
+
+        // not found
+        expect(nonexistentUser.statusCode).toBe(404);
+        expect(nonexistentUser.body["message"]).toBe("User does not exist");
+    });
+    test("Change to an already taken username", async () => {
+        const getAllUsers = await supertest(app).get("/users");
+        const { body } = getAllUsers;
+        const takenUserName = body[0]["username"];
+        const targetUserId = body[1]["_id"];
+
+        const usernameExists = await supertest(app)
+            .put(`/users/${targetUserId}`)
+            .send({
+                username: takenUserName,
+            });
+        expect(usernameExists.statusCode).toBe(500);
+        expect(usernameExists.body["message"]).toBe("Username already exists");
+    });
+    test("Change to a brand new username", async () => {
+        const getAllUsers = await supertest(app).get("/users");
+        const { body } = getAllUsers;
+        const newUsername = "A changed user"
+        const targetUserId = body[1]["_id"];
+
+        const changeUsernameSuccessful = await supertest(app)
+            .put(`/users/${targetUserId}`)
+            .send({
+                username: newUsername,
+            });
+        expect(changeUsernameSuccessful.statusCode).toBe(200);
+        expect(changeUsernameSuccessful.body["message"]).toBe("Username successfully changed");
     });
 });
 
