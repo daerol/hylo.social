@@ -182,7 +182,7 @@ describe("Changing of username", () => {
     test("Change to a brand new username", async () => {
         const getAllUsers = await supertest(app).get("/users");
         const { body } = getAllUsers;
-        const newUsername = "A changed user"
+        const newUsername = "A changed user";
         const targetUserId = body[1]["_id"];
 
         const changeUsernameSuccessful = await supertest(app)
@@ -191,7 +191,39 @@ describe("Changing of username", () => {
                 username: newUsername,
             });
         expect(changeUsernameSuccessful.statusCode).toBe(200);
-        expect(changeUsernameSuccessful.body["message"]).toBe("Username successfully changed");
+        expect(changeUsernameSuccessful.body["message"]).toBe(
+            "Username successfully changed"
+        );
+    });
+});
+
+// refresh link
+describe("Refreshing gen ID of user", () => {
+    test("User does not exist", async () => {
+        const nonexistentId = newObjectId();
+        const nonexistentUser = await supertest(app).put(
+            `/users/r/${nonexistentId}`
+        );
+
+        // not found
+        expect(nonexistentUser.statusCode).toBe(404);
+        expect(nonexistentUser.body["message"]).toBe("User does not exist");
+    });
+    test("User exists, refresh successful", async () => {
+        const getAllUsers = await supertest(app).get("/users");
+        const { body } = getAllUsers;
+        const targetUserId = body[0]["_id"];
+        const userPreviousGenId = body[0]["shortenedURL"];
+
+        const changeUserGenID = await supertest(app).put(
+            `/users/r/${targetUserId}`
+        );
+
+        expect(changeUserGenID.statusCode).toBe(200);
+        expect(changeUserGenID.body["message"]).toBe(
+            "Code successfully refreshed"
+        );
+        expect(changeUserGenID.body["shortenedURL"]).not.toBe(userPreviousGenId)
     });
 });
 
