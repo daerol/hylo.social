@@ -8,9 +8,13 @@ const { generateShortenedID } = require("../helperFunctions/urlManager");
 // =========================Create=========================
 const createUser = async (req, res) => {
     // input:
-    // email (string)
-    // userId (string)
-    // password (string)
+        // body:
+            // email (string)
+            // userId (string)
+            // password (string)
+    // output:
+        // id (database generated ID)
+        // 'shortenedUrl' (6 digit string for)
 
     try {
         const { email, username, password } = req.body;
@@ -51,9 +55,6 @@ const createUser = async (req, res) => {
                 message: "Password has to be at least 6 characters",
             });
         }
-        // res.status(200).json({
-        //     message: "OK",
-        // });
         // // auto generate a url link
 
         const salt = await bcrypt.genSalt(10);
@@ -85,6 +86,7 @@ const createUser = async (req, res) => {
 };
 // =========================Read=========================
 const findAllUsers = async (req, res) => {
+    // test function
     try {
         const users = await allUsers();
         return res.status(200).json(users);
@@ -96,9 +98,16 @@ const findAllUsers = async (req, res) => {
 };
 
 const findUserByDbId = async (req, res) => {
+    // input:
+        // params:
+            // userId (database ID)
+    // output:
+        // user object (for now)
+        
     const { userId } = req.params;
     try {
         const validUser = await User.findById(userId);
+        console.log("validUser",validUser)
         if (validUser == null) {
             return res.status(404).json({ message: "User does not exist" });
         }
@@ -111,6 +120,12 @@ const findUserByDbId = async (req, res) => {
 };
 
 const findUserByGenId = async (req, res) => {
+    // input:
+        // params:
+            // genId (generated ID)
+    // output:
+        // user object (for now)
+
     const { genId } = req.params;
     try {
         const validUser = await User.findOne({ shortenedURL: genId });
@@ -126,6 +141,12 @@ const findUserByGenId = async (req, res) => {
 };
 
 const findUserByUserName = async (req, res) => {
+    // input:
+        // params:
+            // username (username of user)
+    // output:
+        // user object (for now)
+
     const { username } = req.params;
     try {
         const validUser = await User.findOne({ username });
@@ -142,6 +163,14 @@ const findUserByUserName = async (req, res) => {
 
 // =========================Update=========================
 const changeUsername = async (req, res) => {
+    // input:
+        // params:
+            // userId (database generated id of user)
+        // body:
+            // username (new username)
+    // output:
+        // user object (for now)
+
     const { userId } = req.params;
     const { username } = req.body;
     try {
@@ -176,6 +205,11 @@ const changeUsername = async (req, res) => {
 };
 
 const refreshShortenedURL = async (req, res) => {
+    // input:
+        // params:
+            // userId (database generated id of user)
+    // output:
+        // shortenedURL (the shortened url; but 6 digit string for now)
     const { userId } = req.params;
     try {
         const targetUser = await User.findById(userId);
