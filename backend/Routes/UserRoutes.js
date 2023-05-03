@@ -14,7 +14,7 @@ router.get("/db/:userId", userController.findUserByDbId);
 router.get("/id/:genId", userController.findUserByGenId);
 router.get("/:username",userController.findUserByUserName)
 // =========================Update=========================
-
+router.put("/:userId",userController.changeUsername)
 // =========================Delete=========================
 
 // ===========================export routes===========================

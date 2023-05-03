@@ -139,6 +139,40 @@ const findUserByUserName = async (req, res) => {
 };
 
 // =========================Update=========================
+const changeUsername = async (req, res) => {
+    const { userId } = req.params;
+    const { username } = req.body;
+    try {
+        const targetUser = await User.findById(userId);
+        if (targetUser == null) {
+            return res.status(404).json({ message: "User does not exist" });
+        }
+        const userWithSameName = await User.findOne({ username });
+        if (userWithSameName != null && userWithSameName._id != userId) {
+            return res.status(500).json({ message: "Username already exists" });
+        }
+
+        targetUser
+            .updateOne(
+                {
+                    _id: userId,
+                },
+                {
+                    username,
+                }
+            )
+            .then((result) => {
+                return res.status(200).json({
+                    message: "Username successfully changed",
+                });
+            });
+    } catch (err) {
+        return res.status(500).json({
+            message: err,
+        });
+    }
+};
+
 // =========================Delete=========================
 
 module.exports = {
@@ -147,4 +181,5 @@ module.exports = {
     findUserByDbId,
     findUserByGenId,
     findUserByUserName,
+    changeUsername
 };
