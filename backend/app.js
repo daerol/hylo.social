@@ -22,5 +22,5 @@ app.get("/", (req, res) => {
 app.use("/users",require("./Routes/UserRoutes"))
 
 // ============for links============
-
+app.use("/links",require("./Routes/LinkRoutes"))
 module.exports = app;
