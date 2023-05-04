@@ -20,7 +20,6 @@ describe("POST (of user)", () => {
                 password: "123456",
             });
         const { statusCode, body } = filledUpCorrectlyResponse;
-        console.log("body", body);
         expect(statusCode).toBe(200);
         expect(body).toHaveProperty("shortenedURL");
         expect(body).toHaveProperty("message");

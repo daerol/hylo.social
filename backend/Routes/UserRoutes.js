@@ -17,6 +17,6 @@ router.get("/:username", userController.findUserByUserName);
 router.put("/:userId", userController.changeUsername);
 router.put("/r/:userId", userController.refreshShortenedURL);
 // =========================Delete=========================
-
+router.delete("/:userId", userController.deleteUser);
 // ===========================export routes===========================
 module.exports = router;

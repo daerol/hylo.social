@@ -8,13 +8,13 @@ const { generateShortenedID } = require("../helperFunctions/urlManager");
 // =========================Create=========================
 const createUser = async (req, res) => {
     // input:
-        // body:
-            // email (string)
-            // userId (string)
-            // password (string)
+    // body:
+    // email (string)
+    // userId (string)
+    // password (string)
     // output:
-        // id (database generated ID)
-        // 'shortenedUrl' (6 digit string for)
+    // id (database generated ID)
+    // 'shortenedUrl' (6 digit string for)
 
     try {
         const { email, username, password } = req.body;
@@ -64,7 +64,7 @@ const createUser = async (req, res) => {
         const newUser = new User({
             email,
             username,
-            password:hashedPassword,
+            password: hashedPassword,
             shortenedURL,
         });
 
@@ -99,15 +99,15 @@ const findAllUsers = async (req, res) => {
 
 const findUserByDbId = async (req, res) => {
     // input:
-        // params:
-            // userId (database ID)
+    // params:
+    // userId (database ID)
     // output:
-        // user object (for now)
-        
+    // user object (for now)
+
     const { userId } = req.params;
     try {
         const validUser = await User.findById(userId);
-        console.log("validUser",validUser)
+        console.log("validUser", validUser);
         if (validUser == null) {
             return res.status(404).json({ message: "User does not exist" });
         }
@@ -121,10 +121,10 @@ const findUserByDbId = async (req, res) => {
 
 const findUserByGenId = async (req, res) => {
     // input:
-        // params:
-            // genId (generated ID)
+    // params:
+    // genId (generated ID)
     // output:
-        // user object (for now)
+    // user object (for now)
 
     const { genId } = req.params;
     try {
@@ -142,10 +142,10 @@ const findUserByGenId = async (req, res) => {
 
 const findUserByUserName = async (req, res) => {
     // input:
-        // params:
-            // username (username of user)
+    // params:
+    // username (username of user)
     // output:
-        // user object (for now)
+    // user object (for now)
 
     const { username } = req.params;
     try {
@@ -164,12 +164,12 @@ const findUserByUserName = async (req, res) => {
 // =========================Update=========================
 const changeUsername = async (req, res) => {
     // input:
-        // params:
-            // userId (database generated id of user)
-        // body:
-            // username (new username)
+    // params:
+    // userId (database generated id of user)
+    // body:
+    // username (new username)
     // output:
-        // user object (for now)
+    // user object (for now)
 
     const { userId } = req.params;
     const { username } = req.body;
@@ -183,20 +183,18 @@ const changeUsername = async (req, res) => {
             return res.status(500).json({ message: "Username already exists" });
         }
 
-        User
-            .updateOne(
-                {
-                    _id: userId,
-                },
-                {
-                    username,
-                }
-            )
-            .then((result) => {
-                return res.status(200).json({
-                    message: "Username successfully changed",
-                });
+        User.updateOne(
+            {
+                _id: userId,
+            },
+            {
+                username,
+            }
+        ).then((result) => {
+            return res.status(200).json({
+                message: "Username successfully changed",
             });
+        });
     } catch (err) {
         return res.status(500).json({
             message: err,
@@ -206,10 +204,10 @@ const changeUsername = async (req, res) => {
 
 const refreshShortenedURL = async (req, res) => {
     // input:
-        // params:
-            // userId (database generated id of user)
+    // params:
+    // userId (database generated id of user)
     // output:
-        // shortenedURL (the shortened url; but 6 digit string for now)
+    // shortenedURL (the shortened url; but 6 digit string for now)
     const { userId } = req.params;
     try {
         const targetUser = await User.findById(userId);
@@ -236,6 +234,27 @@ const refreshShortenedURL = async (req, res) => {
 };
 
 // =========================Delete=========================
+const deleteUser = async (req, res) => {
+    // input:
+    // params:
+    // userId (database generated id of user)
+    const { userId } = req.params;
+    try {
+        const targetUser = await User.findById(userId);
+        if (targetUser == null) {
+            return res.status(404).json({ message: "User does not exist" });
+        }
+        User.deleteOne( { _id: userId }).then((result) => {
+            return res.status(200).json({
+                message: "User successfully deleted",
+            });
+        });
+    } catch (err) {
+        return res.status(500).json({
+            message: err,
+        });
+    }
+};
 
 module.exports = {
     createUser,
@@ -244,5 +263,6 @@ module.exports = {
     findUserByGenId,
     findUserByUserName,
     changeUsername,
-    refreshShortenedURL
+    refreshShortenedURL,
+    deleteUser
 };
