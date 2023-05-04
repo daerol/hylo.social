@@ -223,7 +223,42 @@ describe("Refreshing gen ID of user", () => {
         expect(changeUserGenID.body["message"]).toBe(
             "URL successfully refreshed"
         );
-        expect(changeUserGenID.body["shortenedURL"]).not.toBe(userPreviousGenId)
+        expect(changeUserGenID.body["shortenedURL"]).not.toBe(
+            userPreviousGenId
+        );
+    });
+});
+
+describe("Deleting user", () => {
+    test("User does not exist", async () => {
+        const nonexistentId = newObjectId();
+        const deleteNonexistentUser = await supertest(app).delete(
+            `/users/${nonexistentId}`
+        );
+
+        // not found
+        expect(deleteNonexistentUser.statusCode).toBe(404);
+        expect(deleteNonexistentUser.body["message"]).toBe(
+            "User does not exist"
+        );
+    });
+    test("User exists, delete successful", async () => {
+        const getAllUsers = await supertest(app).get("/users");
+        const { body } = getAllUsers;
+        const targetUserId = body[0]["_id"];
+        const deleteUser = await supertest(app).delete(
+            `/users/${targetUserId}`
+        );
+        expect(deleteUser.statusCode).toBe(200);
+        expect(deleteUser.body["message"]).toBe("User successfully deleted");
+
+        const deleteUserAgain = await supertest(app).delete(
+            `/users/${targetUserId}`
+        );
+        expect(deleteUserAgain.statusCode).toBe(404);
+        expect(deleteUserAgain.body["message"]).toBe(
+            "User does not exist"
+        );
     });
 });
 
