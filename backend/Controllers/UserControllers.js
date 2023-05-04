@@ -69,8 +69,8 @@ const createUser = async (req, res) => {
         });
 
         await User.create(newUser).then((createdUser) => {
-            console.log(createdUser);
-            console.log("typeof createdUser._id", typeof createdUser._id);
+            // console.log(createdUser);
+            // console.log("typeof createdUser._id", typeof createdUser._id);
             return res.status(200).json({
                 message: "User created",
                 id: createdUser._id,
