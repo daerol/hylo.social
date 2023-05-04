@@ -2,7 +2,10 @@ const User = require("../Models/UserModel");
 const bcrypt = require("bcryptjs");
 
 // =========================Helper functions=========================
-const { allUsers } = require("../helperFunctions/dbHelpers");
+const {
+    allUsers,
+    getUserByDatabaseID,
+} = require("../helperFunctions/dbHelpers");
 const { generateShortenedID } = require("../helperFunctions/urlManager");
 
 // =========================Create=========================
@@ -112,7 +115,7 @@ const findUserByDbId = async (req, res) => {
 
     const { userId } = req.params;
     try {
-        const validUser = await User.findById(userId);
+        const validUser = await getUserByDatabaseID(userId);
         if (validUser == null) {
             return res.status(404).json({ message: "User does not exist" });
         }
@@ -179,7 +182,7 @@ const changeUsername = async (req, res) => {
     const { userId } = req.params;
     const { username } = req.body;
     try {
-        const targetUser = await User.findById(userId);
+        const targetUser = await getUserByDatabaseID(userId);
         if (targetUser == null) {
             return res.status(404).json({ message: "User does not exist" });
         }
@@ -215,7 +218,7 @@ const refreshShortenedURL = async (req, res) => {
     // shortenedURL (the shortened url; but 6 digit string for now)
     const { userId } = req.params;
     try {
-        const targetUser = await User.findById(userId);
+        const targetUser = await getUserByDatabaseID(userId);
         if (targetUser == null) {
             return res.status(404).json({ message: "User does not exist" });
         }
@@ -245,7 +248,7 @@ const deleteUser = async (req, res) => {
     // userId (database generated id of user)
     const { userId } = req.params;
     try {
-        const targetUser = await User.findById(userId);
+        const targetUser = await getUserByDatabaseID(userId)
         if (targetUser == null) {
             return res.status(404).json({ message: "User does not exist" });
         }

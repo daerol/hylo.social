@@ -1,6 +1,11 @@
 const User = require("../Models/UserModel");
 const Link = require("../Models/LinkModel");
 
+// ==============================CRUD==============================
+// ==========================POST==========================
+
+// ==========================GET==========================
+// ================Get all================
 const allUsers = async () => {
     try {
         const users = await User.find();
@@ -20,7 +25,20 @@ const allLinks = async () => {
         return [];
     }
 };
+// ================Get by================
+const getUserByDatabaseID = async (databaseID) => {
+    try {
+        const returnUser = await User.findById(databaseID);
+        return returnUser;
+    } catch (err) {
+        // console.log(err);
+        return null;
+    }
+};
 
+const getLinkByDatabaseID = async (databaseID) => {};
+
+// ==============================Seeding==============================
 const { generateShortenedID } = require("./urlManager");
 const seedUsers = async () => {
     var promises = [];
@@ -51,8 +69,8 @@ const seedLinks = async () => {
                 linkName: "Link Name" + i + j,
                 linkURL: "LinkURL" + i + j,
             });
-            var createLinkPromise = await Link.create(newLink)
-            promises.push(createLinkPromise)
+            var createLinkPromise = await Link.create(newLink);
+            promises.push(createLinkPromise);
         }
     }
     Promise.allSettled(promises).then(() => {
@@ -60,4 +78,10 @@ const seedLinks = async () => {
     });
 };
 
-module.exports = { allUsers, seedUsers,seedLinks };
+module.exports = {
+    allUsers,
+    allLinks,
+    getUserByDatabaseID,
+    seedUsers,
+    seedLinks,
+};

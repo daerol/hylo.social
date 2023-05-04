@@ -111,7 +111,8 @@ describe("[GET] Get User by given database ID", () => {
         );
 
         // does not exist
-        expect(userWithoutDbId.statusCode).toBe(500);
+        expect(userWithoutDbId.statusCode).toBe(404);
+        expect(userWithoutDbId.body["message"]).toBe("User does not exist");
     });
 });
 

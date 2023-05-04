@@ -2,7 +2,7 @@ const Link = require("../Models/LinkModel");
 const User = require("../Models/UserModel");
 
 // =========================Helper functions=========================
-const { allLinks } = require("../helperFunctions/dbHelpers");
+const { allLinks,getUserByDatabaseID } = require("../helperFunctions/dbHelpers");
 // =========================Create=========================
 const createLink = async (req, res) => {
     // input:
@@ -17,7 +17,7 @@ const createLink = async (req, res) => {
         // check if user exists
         // check if linkName is valid
         // check if linkURL is valid
-        const targetUser = await User.findById(userId);
+        const targetUser = await getUserByDatabaseID(userId);
         if (targetUser == null) {
             return res.status(404).json({ message: "User does not exist" });
         }
