@@ -1,7 +1,6 @@
 const supertest = require("supertest");
 const app = require("../app");
-const User = require("../Models/UserModel");
-const { seedUsers } = require("../helperFunctions/dbHelpers");
+const { seedUsers, seedLinks } = require("../helperFunctions/dbHelpers");
 const { newObjectId } = require("../helperFunctions/idGenerator");
 
 const {
@@ -266,6 +265,7 @@ beforeAll(async () => {
     await initialiseConnection().then(async () => {
         await resetTestDB();
         await seedUsers();
+        await seedLinks();
     });
 });
 
