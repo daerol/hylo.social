@@ -1,15 +1,18 @@
+// =================================imports=================================
 const supertest = require("supertest");
 const app = require("../app");
 const { seedUsers, seedLinks } = require("../helperFunctions/dbHelpers");
 const { newObjectId } = require("../helperFunctions/idGenerator");
-
 const {
     resetTestDB,
     initialiseConnection,
     cutConnection,
 } = require("../helperFunctions/dbConnection");
 
-describe("POST (of user)", () => {
+// =================================test cases=================================
+
+// ==================POST==================
+describe("[POST] Add user", () => {
     test("All the correct fields", async () => {
         const filledUpCorrectlyResponse = await supertest(app)
             .post("/users")
@@ -69,7 +72,8 @@ describe("POST (of user)", () => {
     });
 });
 
-describe("GET by given database ID", () => {
+// ==================GET==================
+describe("[GET] Get User by given database ID", () => {
     test("User with Database ID exists", async () => {
         const getAllUsers = await supertest(app).get("/users");
         const { body } = getAllUsers;
@@ -102,7 +106,7 @@ describe("GET by given database ID", () => {
 });
 
 // the 'url'
-describe("GET by given generated ID", () => {
+describe("[GET] Get User by given generated ID", () => {
     test("User with Generated ID exists", async () => {
         const getAllUsers = await supertest(app).get("/users");
         const { body } = getAllUsers;
@@ -125,7 +129,7 @@ describe("GET by given generated ID", () => {
 });
 
 // username
-describe("GET by username", () => {
+describe("[GET] Get User by username", () => {
     test("User with username exists", async () => {
         const getAllUsers = await supertest(app).get("/users");
         const { body } = getAllUsers;
@@ -149,8 +153,9 @@ describe("GET by username", () => {
     });
 });
 
+// ==================PUT==================
 // change username
-describe("Changing of username", () => {
+describe("[PUT] Changing of username", () => {
     test("User does not exist", async () => {
         const nonexistentId = newObjectId();
         const nonexistentUser = await supertest(app)
@@ -196,7 +201,7 @@ describe("Changing of username", () => {
 });
 
 // refresh link
-describe("Refreshing gen ID of user", () => {
+describe("[PUT] Refreshing gen ID of user", () => {
     test("User does not exist", async () => {
         const nonexistentId = newObjectId();
         const nonexistentUser = await supertest(app).put(
@@ -227,7 +232,9 @@ describe("Refreshing gen ID of user", () => {
     });
 });
 
-describe("Deleting user", () => {
+// ==================DELETE==================
+// delete user by database ID
+describe("[DELETE] Deleting user by Database ID", () => {
     test("User does not exist", async () => {
         const nonexistentId = newObjectId();
         const deleteNonexistentUser = await supertest(app).delete(
@@ -254,13 +261,12 @@ describe("Deleting user", () => {
             `/users/${targetUserId}`
         );
         expect(deleteUserAgain.statusCode).toBe(404);
-        expect(deleteUserAgain.body["message"]).toBe(
-            "User does not exist"
-        );
+        expect(deleteUserAgain.body["message"]).toBe("User does not exist");
     });
 });
 
-/* Connecting to the database before each test. */
+// =================================Teardown & Setup=================================
+/* Set up */
 beforeAll(async () => {
     await initialiseConnection().then(async () => {
         await resetTestDB();
@@ -269,7 +275,7 @@ beforeAll(async () => {
     });
 });
 
-/* Closing database connection after each test. */
+/* Tear down */
 afterAll(async () => {
     await resetTestDB().then(async () => {
         await cutConnection();

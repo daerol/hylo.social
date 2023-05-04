@@ -1,20 +1,26 @@
+// =================================imports=================================
 const supertest = require("supertest");
 const app = require("../app");
 const { seedUsers, seedLinks } = require("../helperFunctions/dbHelpers");
 const { newObjectId } = require("../helperFunctions/idGenerator");
-
 const {
     resetTestDB,
     initialiseConnection,
     cutConnection,
 } = require("../helperFunctions/dbConnection");
+// =================================test cases=================================
+
+// ==================POST==================
+
+// ==================GET==================
+
+// ==================PUT==================
+
+// ==================DELETE==================
 
 
-
-
-
-
-/* Connecting to the database before each test. */
+// =================================Teardown & Setup=================================
+/* Set up */
 beforeAll(async () => {
     await initialiseConnection().then(async () => {
         await resetTestDB();
@@ -23,7 +29,7 @@ beforeAll(async () => {
     });
 });
 
-/* Closing database connection after each test. */
+/* Tear down */
 afterAll(async () => {
     await resetTestDB().then(async () => {
         await cutConnection();
