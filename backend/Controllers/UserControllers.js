@@ -28,6 +28,12 @@ const createUser = async (req, res) => {
             });
         }
 
+        if (username.length == 0) {
+            return res.status(400).json({
+                message: "Invalid username",
+            });
+        }
+
         const allRecords = await allUsers();
         // email cannot be taken
         const duplicateEmails = allRecords.filter((record) => {
@@ -107,7 +113,6 @@ const findUserByDbId = async (req, res) => {
     const { userId } = req.params;
     try {
         const validUser = await User.findById(userId);
-        console.log("validUser", validUser);
         if (validUser == null) {
             return res.status(404).json({ message: "User does not exist" });
         }
@@ -244,7 +249,7 @@ const deleteUser = async (req, res) => {
         if (targetUser == null) {
             return res.status(404).json({ message: "User does not exist" });
         }
-        User.deleteOne( { _id: userId }).then((result) => {
+        User.deleteOne({ _id: userId }).then((result) => {
             return res.status(200).json({
                 message: "User successfully deleted",
             });
@@ -264,5 +269,5 @@ module.exports = {
     findUserByUserName,
     changeUsername,
     refreshShortenedURL,
-    deleteUser
+    deleteUser,
 };

@@ -49,6 +49,16 @@ describe("[POST] Add user", () => {
         expect(emailTaken.body["message"]).toBe("Email is taken");
     });
 
+    test("Invalid username", async () => {
+        const invalidEmail = await supertest(app).post("/users").send({
+            email: "testUser12345@gmail.com",
+            username: "",
+            password: "111222",
+        });
+        expect(invalidEmail.statusCode).toBe(400);
+        expect(invalidEmail.body["message"]).toBe("Invalid username");
+    });
+
     test("Invalid email", async () => {
         const invalidEmail = await supertest(app).post("/users").send({
             email: "tescom",
