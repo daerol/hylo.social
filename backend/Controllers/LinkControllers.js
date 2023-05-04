@@ -2,7 +2,10 @@ const Link = require("../Models/LinkModel");
 const User = require("../Models/UserModel");
 
 // =========================Helper functions=========================
-const { allLinks,getUserByDatabaseID } = require("../helperFunctions/dbHelpers");
+const {
+    allLinks,
+    getUserByDatabaseID,
+} = require("../helperFunctions/dbHelpers");
 // =========================Create=========================
 const createLink = async (req, res) => {
     // input:
@@ -37,12 +40,12 @@ const createLink = async (req, res) => {
             linkURL,
         });
 
-        await Link.create(newLink).then((createdLink)=>{
+        await Link.create(newLink).then((createdLink) => {
             return res.status(200).json({
                 message: "Link created",
                 id: createdLink._id,
             });
-        })
+        });
     } catch (err) {
         return res.status(500).json({
             message: err,
@@ -50,6 +53,28 @@ const createLink = async (req, res) => {
     }
 };
 // =========================Read=========================
+const getUserLinksByUserId = async (req, res) => {
+    // input:
+    // params:
+    // userId: (database ID of a given user)
+    // output:
+    // links (array that return all the user's links)
+    const { userId } = req.params;
+    try {
+        const targetUser = await getUserByDatabaseID(userId);
+        if (targetUser == null) {
+            return res.status(404).json({ message: "User does not exist" });
+        }
+        const links = await Link.find({ userId });
+        return res.status(200).json({
+            links,
+        });
+    } catch (err) {
+        return res.status(500).json({
+            message: err,
+        });
+    }
+};
 // =========================Update=========================
 // =========================Delete=========================
-module.exports = {createLink};
+module.exports = { createLink, getUserLinksByUserId };

@@ -76,6 +76,7 @@ describe("[GET] Get link by user", () => {
         const { statusCode, body } = getUserLinks;
         expect(statusCode).toBe(200);
         expect(body).toHaveProperty("links");
+        // console.log(body.links)
     });
     test("User does not exist", async () => {
         const nonexistentId = newObjectId();

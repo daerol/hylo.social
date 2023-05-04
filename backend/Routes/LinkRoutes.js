@@ -9,6 +9,7 @@ const linkController = require("../Controllers/LinkControllers");
 // =========================Create=========================
 router.post("/", linkController.createLink);
 // =========================Read=========================
+router.get("/u/:userId", linkController.getUserLinksByUserId);
 // =========================Update=========================
 // =========================Delete=========================
 // ===========================export routes===========================
