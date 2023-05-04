@@ -64,7 +64,40 @@ describe("[POST] Add link", () => {
 });
 
 // ==================GET==================
+describe("[GET] Get link by user", () => {
+    test("User exists", async () => {
+        const getAllUsers = await supertest(app).get("/users");
+        const { body: users } = getAllUsers;
+        const validUserId = users[0]["_id"];
+        const getUserLinks = await supertest(app).get(
+            `/links/u/${validUserId}`
+        );
 
+        const { statusCode, body } = getUserLinks;
+        expect(statusCode).toBe(200);
+        expect(body).toHaveProperty("links");
+    });
+    test("User does not exist", async () => {
+        const nonexistentId = newObjectId();
+        const userWithoutDbId = await supertest(app).get(
+            `/links/u/${nonexistentId}`
+        );
+
+        // not found
+        expect(userWithoutDbId.statusCode).toBe(404);
+        expect(userWithoutDbId.body["message"]).toBe("User does not exist");
+    });
+    test("Invalid user", async () => {
+        const invalidId = "testing1234";
+        const invalidUserDbID = await supertest(app).get(
+            `/links/u/${invalidId}`
+        );
+
+        // not found
+        expect(invalidUserDbID.statusCode).toBe(404);
+        expect(invalidUserDbID.body["message"]).toBe("User does not exist");
+    });
+});
 // ==================PUT==================
 
 // ==================DELETE==================
