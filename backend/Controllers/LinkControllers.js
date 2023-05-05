@@ -104,13 +104,35 @@ const updateLinkById = async (req, res) => {
     const { linkId } = params;
     try {
         const targetLink = await Link.findById(linkId);
-        if (!userMatch(currUser._id, targetLink.userId)) {
-            return res.status(403).json({ message: "Unauthorised" });
-        }
         if (targetLink == null) {
             return res.status(404).json({ message: "Link not found" });
         }
+        if (!userMatch(currUser._id, targetLink.userId)) {
+            return res.status(403).json({ message: "Unauthorised" });
+        }
+        if (linkName.length == 0) {
+            return res
+                .status(400)
+                .json({ message: "Link name cannot be empty" });
+        }
+        if (linkURL.length == 0) {
+            return res
+                .status(400)
+                .json({ message: "Link URL cannot be empty" });
+        }
+        await Link.updateOne(
+            { _id: linkId },
+            {
+                linkName,
+                linkURL,
+            }
+        ).then(() => {
+            return res.status(200).json({
+                message: "Link updated",
+            });
+        });
     } catch (err) {
+        console.log("err...",err)
         return res.status(500).json({
             message: err,
         });
@@ -121,7 +143,7 @@ const deleteLinkById = async (req, res) => {
     // input:
     // params:
     // linkId: (database ID of link)
-    const { params, body, currUser } = req;
+    const { params, currUser } = req;
     const { linkId } = params;
     try {
         const targetLink = await Link.findById(linkId);

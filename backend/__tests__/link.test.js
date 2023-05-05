@@ -170,7 +170,7 @@ describe("[PUT] Update links (authorised)", () => {
             statusCode: updateEmptyLinkNameStatusCode,
         } = updateEmptyLinkName;
 
-        expect(updateEmptyLinkNameStatusCode).toBe(401);
+        expect(updateEmptyLinkNameStatusCode).toBe(400);
         expect(updateEmptyLinkNameBody["message"]).toBe(
             "Link name cannot be empty"
         );
@@ -188,7 +188,7 @@ describe("[PUT] Update links (authorised)", () => {
             statusCode: updateEmptyLinkURLStatusCode,
         } = updateEmptyLinkURL;
 
-        expect(updateEmptyLinkURLStatusCode).toBe(401);
+        expect(updateEmptyLinkURLStatusCode).toBe(400);
         expect(updateEmptyLinkURLBody["message"]).toBe(
             "Link URL cannot be empty"
         );
