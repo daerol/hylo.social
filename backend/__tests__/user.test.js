@@ -121,7 +121,7 @@ describe("[POST] Login user", () => {
         const { body, statusCode } = successfulLogin;
         expect(statusCode).toBe(200);
         expect(body["message"]).toBe("Login successful");
-        expect(body).toHaveProperty("token")
+        expect(body).toHaveProperty("token");
     });
 });
 
@@ -209,7 +209,24 @@ describe("[GET] Get User by username", () => {
 
 // ==================PUT==================
 // change username
-describe("[PUT] Changing of username", () => {
+describe("[PUT] Changing of username (authorised)", () => {
+    var validToken = null;
+
+    beforeEach(function (done) {
+        const credentials = {
+            email: "test9@gmail.com",
+            password: "123456",
+        };
+        supertest(app)
+            .post("/user/token")
+            .send(credentials)
+            .end(function (err, res) {
+                validToken = res.body.token; // Or something
+                done();
+            });
+        console.log("validToken", validToken);
+    });
+
     test("User does not exist", async () => {
         const nonexistentId = newObjectId();
         const nonexistentUser = await supertest(app)
@@ -316,6 +333,69 @@ describe("[DELETE] Deleting user by Database ID", () => {
         );
         expect(deleteUserAgain.statusCode).toBe(404);
         expect(deleteUserAgain.body["message"]).toBe("User does not exist");
+    });
+});
+
+describe("[PUT/DELETE] Testing of protection middleware", () => {
+    var validToken = null;
+    var invalidToken = "testing";
+    var randomID = newObjectId();
+    beforeEach((done) => {
+        const credentials = {
+            email: "test9@gmail.com",
+            password: "123456",
+        };
+        supertest(app)
+            .post("/user/token")
+            .send(credentials)
+            .end(function (err, res) {
+                validToken = res.body.token; // Or something
+                done();
+            });
+        console.log("validToken", validToken);
+    });
+
+    test("No JWT inside", async () => {
+        // ===========change username===========
+        const noJWTChangeName = await supertest(app)
+            .put(`/users/${randomID}`)
+            .send({
+                username: "testuser1",
+            });
+        const {
+            statusCode: noJWTChangeNameStatusCode,
+            body: noJWTChangeNameBody,
+        } = noJWTChangeName;
+        expect(noJWTChangeNameStatusCode).toBe(403);
+        expect(noJWTChangeNameBody.message).toBe("Invalid token");
+
+        // ===========refresh===========
+        const nowJWTRefresh = await supertest(app).put(
+            `/users/r/${targetUserId}`
+        );
+        // ===========delete user===========
+        const deleteuserRefresh = await supertest(app);
+    });
+
+    test("Invalid JWT inside", async () => {
+        // ===========change username===========
+        const invalidJWTChangeName = await supertest(app)
+            .set("Authorization", "Bearer " + invalidToken)
+            .put(`/users/${randomID}`)
+            .send({
+                username: "testuser2345",
+            });
+        const { statusCode, body } = invalidJWTChangeName;
+        expect(statusCode).toBe(403);
+        expect(body.message).toBe("Invalid token");
+
+        // ===========refresh===========
+        // ===========delete user===========
+    });
+    test("JWT user and queried user mismatch", async () => {
+        // ===========change username===========
+        // ===========refresh===========
+        // ===========delete user===========
     });
 });
 
