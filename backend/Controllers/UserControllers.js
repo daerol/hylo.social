@@ -14,6 +14,11 @@ const generateJWT = (id) => {
         expiresIn: "30d",
     });
 };
+
+const userMatch = (currentUserId, targetUserId) => {
+    return currentUserId == targetUserId;
+};
+
 // =========================Create=========================
 const loginUser = async (req, res) => {
     // input:
@@ -30,12 +35,14 @@ const loginUser = async (req, res) => {
                 message: "User with given email not found",
             });
         } else {
-            console.log(password);
-            console.log(existingUser);
-            if (await bcrypt.compare(password, existingUser.password)) {
+            // console.log(password);
+            // console.log(existingUser);
+            const { _id, password: existingUserPass } = existingUser;
+            if (await bcrypt.compare(password, existingUserPass)) {
                 return res.status(200).json({
                     message: "Login successful",
-                    token: generateJWT(existingUser._id),
+                    userId: _id,
+                    token: generateJWT(_id),
                 });
             } else {
                 res.status(400).json({
@@ -220,18 +227,24 @@ const changeUsername = async (req, res) => {
     // output:
     // user object (for now)
 
-    const { userId } = req.params;
-    const { username } = req.body;
+    const { currUser, params, body } = req;
+    const { userId } = params;
+    const { username } = body;
+    console.log("currUser HAHA",currUser)
     try {
-        const targetUser = await getUserByDatabaseID(userId);
-        if (targetUser == null) {
-            return res.status(404).json({ message: "User does not exist" });
+        console.log("currUser._id, ....",currUser._id,)
+        console.log("userId ....",userId)
+        if (!userMatch(currUser._id, userId)) {
+            return res.status(403).json({ message: "Unauthorised" });
         }
+        // const targetUser = await getUserByDatabaseID(userId);
+        // if (targetUser == null) {
+        //     return res.status(404).json({ message: "User does not exist" });
+        // }
         const userWithSameName = await User.findOne({ username });
         if (userWithSameName != null && userWithSameName._id != userId) {
             return res.status(500).json({ message: "Username already exists" });
         }
-
         User.updateOne(
             {
                 _id: userId,
@@ -257,8 +270,13 @@ const refreshShortenedURL = async (req, res) => {
     // userId (database generated id of user)
     // output:
     // shortenedURL (the shortened url; but 6 digit string for now)
-    const { userId } = req.params;
+
+    const { currUser, params } = req;
+    const { userId } = params;
     try {
+        if (!userMatch(currUser._id, userId)) {
+            return res.status(403).json({ message: "Unauthorised" });
+        }
         const targetUser = await getUserByDatabaseID(userId);
         if (targetUser == null) {
             return res.status(404).json({ message: "User does not exist" });
@@ -287,8 +305,13 @@ const deleteUser = async (req, res) => {
     // input:
     // params:
     // userId (database generated id of user)
-    const { userId } = req.params;
+    const { params, currUser } = req;
+    const { userId } = params;
     try {
+        if (!userMatch(currUser._id, userId)) {
+            return res.status(403).json({ message: "Unauthorised" });
+        }
+
         const targetUser = await getUserByDatabaseID(userId);
         if (targetUser == null) {
             return res.status(404).json({ message: "User does not exist" });
