@@ -104,7 +104,113 @@ describe("[GET] Get link by user", () => {
 // ==================DELETE==================
 
 // ==================JWT middleware==================
+describe("[PUT/DELETE] Testing of protection middleware", () => {
+    var validToken = null;
+    var invalidToken = "testing";
+    var randomID = newObjectId();
+    var validId; //this is the target of deleting/changing
+    var testId; //
+    var selectedLink;
+    beforeEach(async () => {
+        const credentials = {
+            email: "test4@gmail.com",
+            password: "123456",
+        };
+        const loginUser = await supertest(app)
+            .post("/users/login")
+            .send(credentials);
+        const { body: loginUserBody } = loginUser;
 
+        const { token, userId } = loginUserBody;
+        validToken = token; // Or something
+        testId = userId;
+
+        const getUsers = await supertest(app).get("/users");
+        const { body: getUsersBody } = getUsers;
+        validId = getUsersBody[0]["userId"];
+
+        const getLinks = await supertest(app).get(`/links/${validId}`);
+        const { body: links } = getLinks;
+        selectedLink = links[0];
+    });
+
+    test("No JWT inside", async () => {
+        // ===========edit link===========
+        const noJWTEditLink = await supertest(app)
+            .put(`/links/${selectedLink._id}`)
+            .send({
+                linkName: "New link name?",
+                linkURL: "Testing123 link",
+            });
+        const { statusCode: noJWTEditLinkStatusCode, body: noJWTEditLinkBody } =
+            noJWTEditLink;
+        expect(noJWTEditLinkStatusCode).toBe(403);
+        expect(noJWTEditLinkBody.message).toBe("Unauthorised");
+
+        // ===========delete link===========
+        const noJWTDeleteLink = await supertest(app).delete(
+            `/links/${selectedLink._id}`
+        );
+        const {
+            statusCode: noJWTDeleteLinkStatusCode,
+            body: noJWTDeleteLinkBody,
+        } = noJWTDeleteLink;
+        expect(noJWTDeleteLinkStatusCode).toBe(403);
+        expect(noJWTDeleteLinkBody.message).toBe("Unauthorised");
+    });
+
+    test("Invalid JWT inside", async () => {
+        // ===========edit link===========
+        const invalidJWTEditLink = await supertest(app)
+            .delete(`/links/${validId}`)
+            .set("Authorization", "Bearer " + invalidToken);
+        const {
+            statusCode: invalidJWTEditLinkStatusCode,
+            body: invalidJWTEditLinkBody,
+        } = invalidJWTEditLink;
+        expect(invalidJWTEditLinkStatusCode).toBe(403);
+        expect(invalidJWTEditLinkBody.message).toBe("Unauthorised");
+
+        // ===========delete link===========
+        const invalidJWTDeleteLink = await supertest(app)
+            .delete(`/links/${validId}`)
+            .set("Authorization", "Bearer " + invalidToken);
+        const {
+            statusCode: invalidJWTDeleteLinkStatusCode,
+            body: invalidJWTDeleteLinkBody,
+        } = invalidJWTDeleteLink;
+        expect(invalidJWTDeleteLinkStatusCode).toBe(403);
+        expect(invalidJWTDeleteLinkBody.message).toBe("Unauthorised");
+    });
+
+    test("JWT user and queried user mismatch", async () => {
+        // ===========edit link===========
+        const mismatchEditLink = await supertest(app)
+            .put(`/links/${validId}`)
+            .set("Authorization", "Bearer " + validToken)
+            .send({
+                linkName: "New link name?",
+                linkURL: "Testing123 link",
+            });
+        const {
+            statusCode: mismatchEditLinkStatusCode,
+            body: mismatchEditLinkBody,
+        } = mismatchEditLink;
+        expect(mismatchEditLinkStatusCode).toBe(403);
+        expect(mismatchEditLinkBody.message).toBe("Unauthorised");
+
+        // ===========delete link===========
+        const mismatchDeleteLink = await supertest(app)
+            .delete(`/links/${validId}`)
+            .set("Authorization", "Bearer " + validToken);
+        const {
+            statusCode: mismatchDeleteLinkStatusCode,
+            body: mismatchDeleteLinkBody,
+        } = mismatchDeleteLink;
+        expect(mismatchDeleteLinkStatusCode).toBe(403);
+        expect(mismatchDeleteLinkBody.message).toBe("Unauthorised");
+    });
+});
 
 // =================================Teardown & Setup=================================
 /* Set up */
