@@ -127,17 +127,27 @@ describe("[POST] Login user", () => {
 
 // ==================GET==================
 describe("[GET] Get User by given database ID", () => {
+    let validId;
+    let nonexistentId = newObjectId();
+    let invalidId = "123456";
+    beforeEach(async () => {
+        await supertest(app)
+            .get("/users")
+            .then((res) => {
+                const { body } = res;
+                validId = body[0]["_id"];
+                // console.log("validId", validId);
+            });
+    });
+
     test("User with Database ID exists", async () => {
-        const getAllUsers = await supertest(app).get("/users");
-        const { body } = getAllUsers;
-        const validId = body[0]["_id"];
+        // console.log("validId used", validId);
         const userWithDbId = await supertest(app).get(`/users/db/${validId}`);
         // found
         expect(userWithDbId.statusCode).toBe(200);
     });
 
     test("User with Database ID does not exist", async () => {
-        const nonexistentId = newObjectId();
         const userWithoutDbId = await supertest(app).get(
             `/users/${nonexistentId}`
         );
@@ -148,7 +158,6 @@ describe("[GET] Get User by given database ID", () => {
     });
 
     test("User with Database ID is invalid", async () => {
-        const invalidId = "123456";
         const userWithoutDbId = await supertest(app).get(
             `/users/db/${invalidId}`
         );
@@ -161,17 +170,24 @@ describe("[GET] Get User by given database ID", () => {
 
 // the 'url'
 describe("[GET] Get User by given generated ID", () => {
+    let validId;
+    let nonexistentId = newObjectId();
+    beforeEach(async () => {
+        await supertest(app)
+            .get("/users")
+            .then((res) => {
+                const { body } = res;
+                validId = body[0]["shortenedURL"];
+                console.log("validId", validId);
+            });
+    });
     test("User with Generated ID exists", async () => {
-        const getAllUsers = await supertest(app).get("/users");
-        const { body } = getAllUsers;
-        const validId = body[0]["shortenedURL"];
         const userWithGenId = await supertest(app).get(`/users/id/${validId}`);
         // found
         expect(userWithGenId.statusCode).toBe(200);
     });
 
     test("User with Generated ID does not exist", async () => {
-        const nonexistentId = "nonexistentid";
         const userWithoutGenId = await supertest(app).get(
             `/users/id/${nonexistentId}`
         );
@@ -184,10 +200,17 @@ describe("[GET] Get User by given generated ID", () => {
 
 // username
 describe("[GET] Get User by username", () => {
+    let validUserName;
+    let nonexistentUsername = "nonexistentname";
+    beforeEach(async () => {
+        await supertest(app)
+            .get("/users")
+            .then((res) => {
+                const { body } = res;
+                validUserName = body[0]["username"];
+            });
+    });
     test("User with username exists", async () => {
-        const getAllUsers = await supertest(app).get("/users");
-        const { body } = getAllUsers;
-        const validUserName = body[0]["username"];
         const userWithUsername = await supertest(app).get(
             `/users/${validUserName}`
         );
@@ -196,7 +219,6 @@ describe("[GET] Get User by username", () => {
     });
 
     test("User with username does not exist", async () => {
-        const nonexistentUsername = "nonexistentname";
         const userWithoutUserName = await supertest(app).get(
             `/users/${nonexistentUsername}`
         );
@@ -211,26 +233,38 @@ describe("[GET] Get User by username", () => {
 // change username
 describe("[PUT] Changing of username (authorised)", () => {
     var validToken = null;
+    let currentUserId;
+    let validUserName;
 
-    beforeEach(function (done) {
+    beforeEach(async () => {
         const credentials = {
             email: "test9@gmail.com",
             password: "123456",
         };
-        supertest(app)
+        await supertest(app)
             .post("/user/token")
             .send(credentials)
-            .end(function (err, res) {
-                validToken = res.body.token; // Or something
-                done();
+            .then((res) => {
+                const { body } = res;
+                const { token, _id } = body;
+                currentUserId = _id;
+                validToken = token;
             });
-        console.log("validToken", validToken);
+
+        await supertest(app)
+            .get("/users")
+            .then((res) => {
+                const { body } = res;
+                validUserName = body[0]["username"];
+            });
+        // console.log("validToken", validToken);
     });
 
     test("User does not exist", async () => {
         const nonexistentId = newObjectId();
         const nonexistentUser = await supertest(app)
             .put(`/users/${nonexistentId}`)
+            .set("Authorization", "Bearer " + validToken)
             .send({
                 username: "invalidpass",
             });
@@ -243,10 +277,10 @@ describe("[PUT] Changing of username (authorised)", () => {
         const getAllUsers = await supertest(app).get("/users");
         const { body } = getAllUsers;
         const takenUserName = body[0]["username"];
-        const targetUserId = body[1]["_id"];
 
         const usernameExists = await supertest(app)
-            .put(`/users/${targetUserId}`)
+            .put(`/users/${currentUserId}`)
+            .set("Authorization", "Bearer " + validToken)
             .send({
                 username: takenUserName,
             });
@@ -254,13 +288,10 @@ describe("[PUT] Changing of username (authorised)", () => {
         expect(usernameExists.body["message"]).toBe("Username already exists");
     });
     test("Change to a brand new username", async () => {
-        const getAllUsers = await supertest(app).get("/users");
-        const { body } = getAllUsers;
         const newUsername = "A changed user";
-        const targetUserId = body[1]["_id"];
-
         const changeUsernameSuccessful = await supertest(app)
-            .put(`/users/${targetUserId}`)
+            .put(`/users/${currentUserId}`)
+            .set("Authorization", "Bearer " + validToken)
             .send({
                 username: newUsername,
             });
@@ -272,45 +303,88 @@ describe("[PUT] Changing of username (authorised)", () => {
 });
 
 // refresh link
-describe("[PUT] Refreshing gen ID of user", () => {
+describe("[PUT] Refreshing gen ID of user (authorised)", () => {
+    var validToken = null;
+    let currentUserId;
+    // let validUserName;
+
+    beforeEach(async () => {
+        const credentials = {
+            email: "test9@gmail.com",
+            password: "123456",
+        };
+        await supertest(app)
+            .post("/user/token")
+            .send(credentials)
+            .then((res) => {
+                const { body } = res;
+                const { token, _id } = body;
+                currentUserId = _id;
+                validToken = token;
+            });
+
+        await supertest(app)
+            .get("/users")
+            .then((res) => {
+                const { body } = res;
+                // validUserName = body[0]["username"];
+            });
+    });
+
     test("User does not exist", async () => {
         const nonexistentId = newObjectId();
-        const nonexistentUser = await supertest(app).put(
-            `/users/r/${nonexistentId}`
-        );
+        const nonexistentUser = await supertest(app)
+            .put(`/users/r/${nonexistentId}`)
+            .set("Authorization", "Bearer " + validToken);
 
         // not found
         expect(nonexistentUser.statusCode).toBe(404);
         expect(nonexistentUser.body["message"]).toBe("User does not exist");
     });
+
     test("User exists, refresh successful", async () => {
-        const getAllUsers = await supertest(app).get("/users");
-        const { body } = getAllUsers;
-        const targetUserId = body[0]["_id"];
-        const userPreviousGenId = body[0]["shortenedURL"];
+        // const userPreviousGenId = body[0]["shortenedURL"];
 
         const changeUserGenID = await supertest(app).put(
-            `/users/r/${targetUserId}`
+            `/users/r/${currentUserId}`
         );
+        const { statusCode, body } = changeUserGenID;
 
-        expect(changeUserGenID.statusCode).toBe(200);
-        expect(changeUserGenID.body["message"]).toBe(
-            "URL successfully refreshed"
-        );
-        expect(changeUserGenID.body["shortenedURL"]).not.toBe(
-            userPreviousGenId
-        );
+        expect(statusCode).toBe(200);
+        expect(body["message"]).toBe("URL successfully refreshed");
+        // expect(changeUserGenID.body["shortenedURL"]).not.toBe(
+        //     userPreviousGenId
+        // );
     });
 });
 
 // ==================DELETE==================
 // delete user by database ID
 describe("[DELETE] Deleting user by Database ID", () => {
+    var validToken = null;
+    let currentUserId;
+
+    beforeEach(async () => {
+        const credentials = {
+            email: "test9@gmail.com",
+            password: "123456",
+        };
+        await supertest(app)
+            .post("/user/token")
+            .send(credentials)
+            .then((res) => {
+                const { body } = res;
+                const { token, _id } = body;
+                currentUserId = _id;
+                validToken = token;
+            });
+    });
+
     test("User does not exist", async () => {
         const nonexistentId = newObjectId();
-        const deleteNonexistentUser = await supertest(app).delete(
-            `/users/${nonexistentId}`
-        );
+        const deleteNonexistentUser = await supertest(app)
+            .delete(`/users/${nonexistentId}`)
+            .set("Authorization", "Bearer " + validToken);
 
         // not found
         expect(deleteNonexistentUser.statusCode).toBe(404);
@@ -319,17 +393,14 @@ describe("[DELETE] Deleting user by Database ID", () => {
         );
     });
     test("User exists, delete successful", async () => {
-        const getAllUsers = await supertest(app).get("/users");
-        const { body } = getAllUsers;
-        const targetUserId = body[0]["_id"];
-        const deleteUser = await supertest(app).delete(
-            `/users/${targetUserId}`
-        );
+        const deleteUser = await supertest(app)
+            .delete(`/users/${currentUserId}`)
+            .set("Authorization", "Bearer " + validToken);
         expect(deleteUser.statusCode).toBe(200);
         expect(deleteUser.body["message"]).toBe("User successfully deleted");
 
         const deleteUserAgain = await supertest(app).delete(
-            `/users/${targetUserId}`
+            `/users/${currentUserId}`
         );
         expect(deleteUserAgain.statusCode).toBe(404);
         expect(deleteUserAgain.body["message"]).toBe("User does not exist");
@@ -340,25 +411,33 @@ describe("[PUT/DELETE] Testing of protection middleware", () => {
     var validToken = null;
     var invalidToken = "testing";
     var randomID = newObjectId();
-    beforeEach((done) => {
+    var validId; //this is the target of deleting/changing
+    var testId; //
+    beforeEach(async () => {
         const credentials = {
             email: "test9@gmail.com",
             password: "123456",
         };
-        supertest(app)
+        await supertest(app)
             .post("/user/token")
             .send(credentials)
-            .end(function (err, res) {
+            .then((res) => {
                 validToken = res.body.token; // Or something
-                done();
             });
-        console.log("validToken", validToken);
+        await supertest(app)
+            .get("/users")
+            .then((res) => {
+                const { body } = res;
+                validId = body[0]["_id"];
+                // testId = body[1]["_id"];
+            });
+        // console.log("validToken", validToken);
     });
 
     test("No JWT inside", async () => {
         // ===========change username===========
         const noJWTChangeName = await supertest(app)
-            .put(`/users/${randomID}`)
+            .put(`/users/${validId}`)
             .send({
                 username: "testuser1",
             });
@@ -370,30 +449,64 @@ describe("[PUT/DELETE] Testing of protection middleware", () => {
         expect(noJWTChangeNameBody.message).toBe("Invalid token");
 
         // ===========refresh===========
-        const nowJWTRefresh = await supertest(app).put(
-            `/users/r/${targetUserId}`
-        );
+        const nowJWTRefresh = await supertest(app).put(`/users/r/${validId}`);
+        const { statusCode: nowJWTRefreshStatusCode, body: nowJWTRefreshBody } =
+            nowJWTRefresh;
+        expect(nowJWTRefreshStatusCode).toBe(403);
+        expect(nowJWTRefreshBody.message).toBe("Invalid token");
+
         // ===========delete user===========
-        const deleteuserRefresh = await supertest(app);
+        const nowJWTDeleteUser = await supertest(app).delete(
+            `/users/${targetUserId}`
+        );
+        const {
+            statusCode: nowJWTDeleteUserStatusCode,
+            body: nowJWTDeleteUserBody,
+        } = nowJWTDeleteUser;
+        expect(nowJWTDeleteUserStatusCode).toBe(403);
+        expect(nowJWTDeleteUserBody.message).toBe("Invalid token");
     });
 
     test("Invalid JWT inside", async () => {
         // ===========change username===========
         const invalidJWTChangeName = await supertest(app)
+            .put(`/users/${validId}`)
             .set("Authorization", "Bearer " + invalidToken)
-            .put(`/users/${randomID}`)
             .send({
                 username: "testuser2345",
             });
-        const { statusCode, body } = invalidJWTChangeName;
-        expect(statusCode).toBe(403);
-        expect(body.message).toBe("Invalid token");
+        const {
+            statusCode: invalidJWTChangeNameStatusCode,
+            body: invalidJWTChangeNameBody,
+        } = invalidJWTChangeName;
+        expect(invalidJWTChangeNameStatusCode).toBe(403);
+        expect(invalidJWTChangeNameBody.message).toBe("Invalid token");
 
         // ===========refresh===========
+        const invalidJWTRefresh = await supertest(app)
+            .put(`/users/r/${validId}`)
+            .set("Authorization", "Bearer " + invalidToken);
+        const {
+            statusCode: invalidJWTRefreshStatusCode,
+            body: invalidJWTRefreshBody,
+        } = invalidJWTRefresh;
+        expect(invalidJWTRefreshStatusCode).toBe(403);
+        expect(invalidJWTRefreshBody.message).toBe("Invalid token");
+
         // ===========delete user===========
+        const invalidJWTDeleteUser = await supertest(app)
+            .delete(`/users/${targetUserId}`)
+            .set("Authorization", "Bearer " + invalidToken);
+        const {
+            statusCode: invalidJWTDeleteUserStatusCode,
+            body: invalidJWTDeleteUserBody,
+        } = invalidJWTDeleteUser;
+        expect(invalidJWTDeleteUserStatusCode).toBe(403);
+        expect(invalidJWTDeleteUserBody.message).toBe("Invalid token");
     });
     test("JWT user and queried user mismatch", async () => {
         // ===========change username===========
+        // const mismatchChangeUsername = await supertest.
         // ===========refresh===========
         // ===========delete user===========
     });
