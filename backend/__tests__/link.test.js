@@ -196,8 +196,51 @@ describe("[PUT] Update links (authorised)", () => {
 });
 // ==================DELETE==================
 describe("[DELETE] Deleting link by Database ID", () => {
-    test("Link does not exist", async () => {});
-    test("Link exists, delete successful", async () => {});
+    var validToken = null;
+    var testId; //
+    var selectedLink;
+    let nonexistentId = newObjectId();
+    beforeEach(async () => {
+        const credentials = {
+            email: "test4@gmail.com",
+            password: "123456",
+        };
+        const loginUser = await supertest(app)
+            .post("/users/login")
+            .send(credentials);
+        const { body: loginUserBody } = loginUser;
+
+        const { token, userId } = loginUserBody;
+        validToken = token; // Or something
+        testId = userId;
+
+        const getLinks = await supertest(app).get(`/links/u/${testId}`);
+        const { body } = getLinks;
+        const { links } = body;
+        selectedLink = links[0];
+    });
+    test("Link does not exist", async () => {
+        const deleteNonExistentLink = await supertest(app).delete(
+            `/links/${nonexistentId}`
+        );
+        const {
+            statusCode: deleteNonExistentLinkStatusCode,
+            body: deleteNonExistentLinkBody,
+        } = deleteNonExistentLink;
+        expect(deleteNonExistentLinkStatusCode).toBe().toBe(404);
+        expect(deleteNonExistentLinkBody["message"]).toBe("Link not found");
+    });
+    test("Link exists, delete successful", async () => {
+        const deleteExistentLink = await supertest(app).delete(
+            `/links/${selectedLink._id}`
+        );
+        const {
+            statusCode: deleteExistentLinkStatusCode,
+            body: deleteExistentLinkBody,
+        } = deleteExistentLink;
+        expect(deleteExistentLinkStatusCode).toBe().toBe(200);
+        expect(deleteExistentLinkBody["message"]).toBe("Link successfully deleted");
+    });
 });
 
 // ==================JWT middleware==================
