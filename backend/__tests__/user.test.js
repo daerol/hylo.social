@@ -394,6 +394,8 @@ describe("[DELETE] Deleting user by Database ID", () => {
     });
 });
 
+
+// ==================JWT middleware==================
 describe("[PUT/DELETE] Testing of protection middleware", () => {
     var validToken = null;
     var invalidToken = "testing";
