@@ -82,6 +82,49 @@ describe("[POST] Add user", () => {
     });
 });
 
+describe("[POST] Login user", () => {
+    test("Invalid email/Email not found", async () => {
+        const loginDetails = {
+            email: "test",
+            password: "123",
+        };
+        const invalidEmailLogin = await supertest(app)
+            .post("/users/login")
+            .send(loginDetails);
+
+        const { body, statusCode } = invalidEmailLogin;
+        expect(statusCode).toBe(400);
+        expect(body["message"]).toBe("Invalid email");
+    });
+    test("Invalid password", async () => {
+        const loginDetails = {
+            email: "test20@gmail.com",
+            password: "1234567",
+        };
+        const invalidPasswordLogin = await supertest(app)
+            .post("/users/login")
+            .send(loginDetails);
+
+        const { body, statusCode } = invalidPasswordLogin;
+        expect(statusCode).toBe(400);
+        expect(body["message"]).toBe("Invalid password");
+    });
+    test("Successful login", async () => {
+        const loginDetails = {
+            email: "test20@gmail.com",
+            password: "123456",
+        };
+        const successfulLogin = await supertest(app)
+            .post("/users/login")
+            .send(loginDetails);
+
+        const { body, statusCode } = successfulLogin;
+        expect(statusCode).toBe(200);
+        expect(body["message"]).toBe("Login Successful");
+        expect(body).toHaveProperty("token")
+    });
+});
+
 // ==================GET==================
 describe("[GET] Get User by given database ID", () => {
     test("User with Database ID exists", async () => {
