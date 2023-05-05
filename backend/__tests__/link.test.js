@@ -100,8 +100,105 @@ describe("[GET] Get link by user", () => {
     });
 });
 // ==================PUT==================
+describe("[PUT] Update links (authorised)", () => {
+    var validToken = null;
+    var testId; //
+    var selectedLink;
+    let nonexistentId = newObjectId();
+    beforeEach(async () => {
+        const credentials = {
+            email: "test4@gmail.com",
+            password: "123456",
+        };
+        const loginUser = await supertest(app)
+            .post("/users/login")
+            .send(credentials);
+        const { body: loginUserBody } = loginUser;
 
+        const { token, userId } = loginUserBody;
+        validToken = token; // Or something
+        testId = userId;
+
+        const getLinks = await supertest(app).get(`/links/u/${testId}`);
+        const { body } = getLinks;
+        const { links } = body;
+        selectedLink = links[0];
+    });
+
+    test("All the fields are correct", async () => {
+        const updateAllFieldsCorrectly = await supertest(app)
+            .put(`/links/${selectedLink._id}`)
+            .set("Authorization", "Bearer " + validToken)
+            .send({
+                linkName: "New link name i think?",
+                linkURL: "Testing123 link",
+            });
+        const {
+            body: updateAllFieldsCorrectlyBody,
+            statusCode: updateAllFieldsCorrectlyStatusCode,
+        } = updateAllFieldsCorrectly;
+
+        expect(updateAllFieldsCorrectlyStatusCode).toBe(200);
+        expect(updateAllFieldsCorrectlyBody["message"]).toBe("Link updated");
+    });
+    test("Link does not exist", async () => {
+        const updateLinkDontExist = await supertest(app)
+            .put(`/links/${nonexistentId}`)
+            .set("Authorization", "Bearer " + validToken)
+            .send({
+                linkName: "New link name i think?",
+                linkURL: "Testing123 link",
+            });
+        const {
+            body: updateLinkDontExistBody,
+            statusCode: updateLinkDontExistStatusCode,
+        } = updateLinkDontExist;
+
+        expect(updateLinkDontExistStatusCode).toBe(404);
+        expect(updateLinkDontExistBody["message"]).toBe("Link not found");
+    });
+    test("Link name is empty", async () => {
+        const updateEmptyLinkName = await supertest(app)
+            .put(`/links/${selectedLink._id}`)
+            .set("Authorization", "Bearer " + validToken)
+            .send({
+                linkName: "",
+                linkURL: "Testing123 link",
+            });
+        const {
+            body: updateEmptyLinkNameBody,
+            statusCode: updateEmptyLinkNameStatusCode,
+        } = updateEmptyLinkName;
+
+        expect(updateEmptyLinkNameStatusCode).toBe(401);
+        expect(updateEmptyLinkNameBody["message"]).toBe(
+            "Link name cannot be empty"
+        );
+    });
+    test("Link URL is empty", async () => {
+        const updateEmptyLinkURL = await supertest(app)
+            .put(`/links/${selectedLink._id}`)
+            .set("Authorization", "Bearer " + validToken)
+            .send({
+                linkName: "New link name i think?",
+                linkURL: "",
+            });
+        const {
+            body: updateEmptyLinkURLBody,
+            statusCode: updateEmptyLinkURLStatusCode,
+        } = updateEmptyLinkURL;
+
+        expect(updateEmptyLinkURLStatusCode).toBe(401);
+        expect(updateEmptyLinkURLBody["message"]).toBe(
+            "Link URL cannot be empty"
+        );
+    });
+});
 // ==================DELETE==================
+describe("[DELETE] Deleting link by Database ID", () => {
+    test("Link does not exist", async () => {});
+    test("Link exists, delete successful", async () => {});
+});
 
 // ==================JWT middleware==================
 describe("[PUT/DELETE] Testing of protection middleware", () => {
@@ -132,7 +229,6 @@ describe("[PUT/DELETE] Testing of protection middleware", () => {
         const getLinks = await supertest(app).get(`/links/u/${validId}`);
         const { body } = getLinks;
         const { links } = body;
-        // console.log("getLinks.body",getLinks.body)
         selectedLink = links[0];
         console.log("selectedLink", selectedLink);
     });
