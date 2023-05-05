@@ -93,12 +93,12 @@ describe("[POST] Login user", () => {
             .send(loginDetails);
 
         const { body, statusCode } = invalidEmailLogin;
-        expect(statusCode).toBe(400);
-        expect(body["message"]).toBe("Invalid email");
+        expect(statusCode).toBe(404);
+        expect(body["message"]).toBe("User with given email not found");
     });
     test("Invalid password", async () => {
         const loginDetails = {
-            email: "test20@gmail.com",
+            email: "test9@gmail.com",
             password: "1234567",
         };
         const invalidPasswordLogin = await supertest(app)
@@ -111,7 +111,7 @@ describe("[POST] Login user", () => {
     });
     test("Successful login", async () => {
         const loginDetails = {
-            email: "test20@gmail.com",
+            email: "test9@gmail.com",
             password: "123456",
         };
         const successfulLogin = await supertest(app)
@@ -120,7 +120,7 @@ describe("[POST] Login user", () => {
 
         const { body, statusCode } = successfulLogin;
         expect(statusCode).toBe(200);
-        expect(body["message"]).toBe("Login Successful");
+        expect(body["message"]).toBe("Login successful");
         expect(body).toHaveProperty("token")
     });
 });

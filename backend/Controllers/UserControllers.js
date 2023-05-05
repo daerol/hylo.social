@@ -1,5 +1,6 @@
 const User = require("../Models/UserModel");
 const bcrypt = require("bcryptjs");
+const jwt = require("jsonwebtoken");
 
 // =========================Helper functions=========================
 const {
@@ -8,7 +9,47 @@ const {
 } = require("../helperFunctions/dbHelpers");
 const { generateShortenedID } = require("../helperFunctions/urlManager");
 
+const generateJWT = (id) => {
+    return jwt.sign({ id }, process.env.JWT_SECRET, {
+        expiresIn: "30d",
+    });
+};
 // =========================Create=========================
+const loginUser = async (req, res) => {
+    // input:
+    // body:
+    // email (string)
+    // password(string)
+    // output:
+    // token (generated jwt token after login)
+    const { email, password } = req.body;
+    try {
+        const existingUser = await User.findOne({ email });
+        if (existingUser == null) {
+            return res.status(404).json({
+                message: "User with given email not found",
+            });
+        } else {
+            console.log(password);
+            console.log(existingUser);
+            if (await bcrypt.compare(password, existingUser.password)) {
+                return res.status(200).json({
+                    message: "Login successful",
+                    token: generateJWT(existingUser._id),
+                });
+            } else {
+                res.status(400).json({
+                    message: "Invalid password",
+                });
+            }
+        }
+    } catch (err) {
+        return res.status(500).json({
+            message: err,
+        });
+    }
+};
+
 const createUser = async (req, res) => {
     // input:
     // body:
@@ -248,7 +289,7 @@ const deleteUser = async (req, res) => {
     // userId (database generated id of user)
     const { userId } = req.params;
     try {
-        const targetUser = await getUserByDatabaseID(userId)
+        const targetUser = await getUserByDatabaseID(userId);
         if (targetUser == null) {
             return res.status(404).json({ message: "User does not exist" });
         }
@@ -265,6 +306,7 @@ const deleteUser = async (req, res) => {
 };
 
 module.exports = {
+    loginUser,
     createUser,
     findAllUsers,
     findUserByDbId,

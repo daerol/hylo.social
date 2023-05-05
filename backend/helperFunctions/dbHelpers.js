@@ -1,6 +1,6 @@
 const User = require("../Models/UserModel");
 const Link = require("../Models/LinkModel");
-
+const bcrypt = require("bcryptjs");
 // ==============================CRUD==============================
 // ==========================POST==========================
 
@@ -41,13 +41,15 @@ const getLinkByDatabaseID = async (databaseID) => {};
 // ==============================Seeding==============================
 const { generateShortenedID } = require("./urlManager");
 const seedUsers = async () => {
+    const salt = await bcrypt.genSalt(10);
     var promises = [];
-    for (var i = 0; i < 30; i++) {
+    for (var i = 0; i < 10; i++) {
+        const hashedPassword = bcrypt.hashSync("123456", salt);
         var newUser = new User({
             email: "test" + i + "@gmail.com",
             username: "user" + i,
             shortenedURL: generateShortenedID(),
-            password: "123456",
+            password: hashedPassword,
         });
         var createUserPromise = await User.create(newUser);
         promises.push(createUserPromise);
