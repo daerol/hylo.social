@@ -230,17 +230,10 @@ const changeUsername = async (req, res) => {
     const { currUser, params, body } = req;
     const { userId } = params;
     const { username } = body;
-    console.log("currUser HAHA",currUser)
     try {
-        console.log("currUser._id, ....",currUser._id,)
-        console.log("userId ....",userId)
         if (!userMatch(currUser._id, userId)) {
             return res.status(403).json({ message: "Unauthorised" });
         }
-        // const targetUser = await getUserByDatabaseID(userId);
-        // if (targetUser == null) {
-        //     return res.status(404).json({ message: "User does not exist" });
-        // }
         const userWithSameName = await User.findOne({ username });
         if (userWithSameName != null && userWithSameName._id != userId) {
             return res.status(500).json({ message: "Username already exists" });

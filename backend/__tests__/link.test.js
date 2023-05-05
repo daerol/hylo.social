@@ -127,11 +127,14 @@ describe("[PUT/DELETE] Testing of protection middleware", () => {
 
         const getUsers = await supertest(app).get("/users");
         const { body: getUsersBody } = getUsers;
-        validId = getUsersBody[0]["userId"];
+        validId = getUsersBody[0]["_id"];
 
-        const getLinks = await supertest(app).get(`/links/${validId}`);
-        const { body: links } = getLinks;
+        const getLinks = await supertest(app).get(`/links/u/${validId}`);
+        const { body } = getLinks;
+        const { links } = body;
+        // console.log("getLinks.body",getLinks.body)
         selectedLink = links[0];
+        console.log("selectedLink", selectedLink);
     });
 
     test("No JWT inside", async () => {
@@ -162,7 +165,7 @@ describe("[PUT/DELETE] Testing of protection middleware", () => {
     test("Invalid JWT inside", async () => {
         // ===========edit link===========
         const invalidJWTEditLink = await supertest(app)
-            .delete(`/links/${validId}`)
+            .delete(`/links/${selectedLink._id}`)
             .set("Authorization", "Bearer " + invalidToken);
         const {
             statusCode: invalidJWTEditLinkStatusCode,
@@ -173,7 +176,7 @@ describe("[PUT/DELETE] Testing of protection middleware", () => {
 
         // ===========delete link===========
         const invalidJWTDeleteLink = await supertest(app)
-            .delete(`/links/${validId}`)
+            .delete(`/links/${selectedLink._id}`)
             .set("Authorization", "Bearer " + invalidToken);
         const {
             statusCode: invalidJWTDeleteLinkStatusCode,
@@ -186,7 +189,7 @@ describe("[PUT/DELETE] Testing of protection middleware", () => {
     test("JWT user and queried user mismatch", async () => {
         // ===========edit link===========
         const mismatchEditLink = await supertest(app)
-            .put(`/links/${validId}`)
+            .put(`/links/${selectedLink._id}`)
             .set("Authorization", "Bearer " + validToken)
             .send({
                 linkName: "New link name?",
@@ -201,7 +204,7 @@ describe("[PUT/DELETE] Testing of protection middleware", () => {
 
         // ===========delete link===========
         const mismatchDeleteLink = await supertest(app)
-            .delete(`/links/${validId}`)
+            .delete(`/links/${selectedLink._id}`)
             .set("Authorization", "Bearer " + validToken);
         const {
             statusCode: mismatchDeleteLinkStatusCode,

@@ -6,6 +6,10 @@ const {
     allLinks,
     getUserByDatabaseID,
 } = require("../helperFunctions/dbHelpers");
+
+const userMatch = (currentUserId, targetUserId) => {
+    return currentUserId == targetUserId;
+};
 // =========================Create=========================
 const createLink = async (req, res) => {
     // input:
@@ -53,6 +57,18 @@ const createLink = async (req, res) => {
     }
 };
 // =========================Read=========================
+const findAllLinks = async (req, res) => {
+    // test function
+    try {
+        const links = await allLinks();
+        return res.status(200).json(links);
+    } catch (err) {
+        return res.status(500).json({
+            message: err,
+        });
+    }
+};
+
 const getUserLinksByUserId = async (req, res) => {
     // input:
     // params:
@@ -76,5 +92,54 @@ const getUserLinksByUserId = async (req, res) => {
     }
 };
 // =========================Update=========================
+const updateLinkById = async (req, res) => {
+    // input:
+    // params:
+    // linkId: (database ID of link)
+    // body:
+    // linkName: (new name of the link)
+    // linkURL: (new URL of the link)
+    const { params, body, currUser } = req;
+    const { linkName, linkURL } = body;
+    const { linkId } = params;
+    try {
+        const targetLink = await Link.findById(linkId);
+        if (!userMatch(currUser._id, targetLink.userId)) {
+            return res.status(403).json({ message: "Unauthorised" });
+        }
+        if (targetLink == null) {
+            return res.status(404).json({ message: "Link not found" });
+        }
+    } catch (err) {
+        return res.status(500).json({
+            message: err,
+        });
+    }
+};
 // =========================Delete=========================
-module.exports = { createLink, getUserLinksByUserId };
+const deleteLinkById = async (req, res) => {
+    // input:
+    // params:
+    // linkId: (database ID of link)
+    const { params, body, currUser } = req;
+    const { linkId } = params;
+    try {
+        const targetLink = await Link.findById(linkId);
+        if (!userMatch(currUser._id, targetLink.userId)) {
+            return res.status(403).json({ message: "Unauthorised" });
+        }
+        if (targetLink == null) {
+            return res.status(404).json({ message: "Link not found" });
+        }
+    } catch (err) {
+        return res.status(500).json({
+            message: err,
+        });
+    }
+};
+module.exports = {
+    createLink,
+    getUserLinksByUserId,
+    updateLinkById,
+    deleteLinkById,
+};
