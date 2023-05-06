@@ -145,14 +145,20 @@ const deleteLinkById = async (req, res) => {
     // linkId: (database ID of link)
     const { params, currUser } = req;
     const { linkId } = params;
+
     try {
         const targetLink = await Link.findById(linkId);
-        if (!userMatch(currUser._id, targetLink.userId)) {
-            return res.status(403).json({ message: "Unauthorised" });
-        }
         if (targetLink == null) {
             return res.status(404).json({ message: "Link not found" });
         }
+        if (!userMatch(currUser._id, targetLink.userId)) {
+            return res.status(403).json({ message: "Unauthorised" });
+        }
+        await Link.deleteOne({ _id: linkId }).then(() => {
+            return res.status(200).json({
+                message: "Link successfully deleted",
+            });
+        });
     } catch (err) {
         return res.status(500).json({
             message: err,

@@ -64,7 +64,7 @@ const seedLinks = async () => {
     var promises = [];
     for (var i = 0; i < getSeededUsers.length; i++) {
         const userId = getSeededUsers[i]["_id"];
-        const noOfLinks = Math.floor(Math.random() * 5) + 1;
+        const noOfLinks = Math.floor(Math.random() * 8) + 3;
         for (var j = 0; j < noOfLinks; j++) {
             var newLink = new Link({
                 userId,

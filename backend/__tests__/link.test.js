@@ -217,29 +217,33 @@ describe("[DELETE] Deleting link by Database ID", () => {
         const getLinks = await supertest(app).get(`/links/u/${testId}`);
         const { body } = getLinks;
         const { links } = body;
+        console.log("testId", testId);
+        console.log("links", links);
         selectedLink = links[0];
     });
     test("Link does not exist", async () => {
         const deleteNonExistentLink = await supertest(app).delete(
             `/links/${nonexistentId}`
-        );
+        ).set("Authorization", "Bearer " + validToken);
         const {
             statusCode: deleteNonExistentLinkStatusCode,
             body: deleteNonExistentLinkBody,
         } = deleteNonExistentLink;
-        expect(deleteNonExistentLinkStatusCode).toBe().toBe(404);
+        expect(deleteNonExistentLinkStatusCode).toBe(404);
         expect(deleteNonExistentLinkBody["message"]).toBe("Link not found");
     });
     test("Link exists, delete successful", async () => {
         const deleteExistentLink = await supertest(app).delete(
             `/links/${selectedLink._id}`
-        );
+        ).set("Authorization", "Bearer " + validToken);
         const {
             statusCode: deleteExistentLinkStatusCode,
             body: deleteExistentLinkBody,
         } = deleteExistentLink;
-        expect(deleteExistentLinkStatusCode).toBe().toBe(200);
-        expect(deleteExistentLinkBody["message"]).toBe("Link successfully deleted");
+        expect(deleteExistentLinkStatusCode).toBe(200);
+        expect(deleteExistentLinkBody["message"]).toBe(
+            "Link successfully deleted"
+        );
     });
 });
 
@@ -273,7 +277,6 @@ describe("[PUT/DELETE] Testing of protection middleware", () => {
         const { body } = getLinks;
         const { links } = body;
         selectedLink = links[0];
-        console.log("selectedLink", selectedLink);
     });
 
     test("No JWT inside", async () => {
