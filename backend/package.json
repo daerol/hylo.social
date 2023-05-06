@@ -10,6 +10,7 @@
     "author": "",
     "license": "ISC",
     "dependencies": {
+        "@aws-sdk/client-s3": "^3.328.0",
         "axios": "^1.4.0",
         "bcryptjs": "^2.4.3",
         "body-parser": "^1.20.2",
@@ -19,6 +20,7 @@
         "jest": "^29.5.0",
         "jsonwebtoken": "^9.0.0",
         "mongoose": "^7.1.0",
+        "multer": "^1.4.5-lts.1",
         "nodemon": "^2.0.22",
         "short-uuid": "^4.2.2",
         "supertest": "^6.3.3"

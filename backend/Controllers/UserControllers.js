@@ -2,6 +2,15 @@ const User = require("../Models/UserModel");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 
+const { S3Client, PutObjectCommand } = require("@aws-sdk/client-s3");
+
+const multer = require("multer");
+const storage = multer.memoryStorage();
+
+const upload = multer({
+    storage,
+});
+
 // =========================Helper functions=========================
 const {
     allUsers,
@@ -18,6 +27,14 @@ const generateJWT = (id) => {
 const userMatch = (currentUserId, targetUserId) => {
     return currentUserId == targetUserId;
 };
+
+const s3 = new S3Client({
+    accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
+    region: process.env.AWS_REGION,
+    bucket: process.env.AWS_BUCKET_NAME,
+    
+});
 
 // =========================Create=========================
 const loginUser = async (req, res) => {
@@ -68,7 +85,8 @@ const createUser = async (req, res) => {
     // 'shortenedUrl' (6 digit string for)
 
     try {
-        const { email, username, password } = req.body;
+        const { body, file } = req;
+        const { email, username, password } = body;
         // check for valid email
         const EMAIL_REGEX =
             /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
@@ -117,12 +135,32 @@ const createUser = async (req, res) => {
         const salt = await bcrypt.genSalt(10);
         const hashedPassword = await bcrypt.hash(password, salt);
 
+        // if file
+        let uploadedPic ="";
+        if (file != null) {
+            const key = `${generateShortenedID()}-${file.originalname}`
+            const param = {
+                Bucket: process.env.AWS_BUCKET_NAME,
+                Key: key,
+                Body: file.buffer,
+                ContentType: file.mimetype
+            };
+            // const uploadedProfilePic = await s3.send(
+            //     new PutObjectCommand(param)
+            // );
+            await s3.send(new PutObjectCommand(param)).then(()=>{
+                uploadedPic = process.env.AWS_S3_BUCKET_LINK+key
+            });
+            // console.log("uploadedProfilePic",uploadedProfilePic);
+        }
+
         const shortenedURL = generateShortenedID();
         const newUser = new User({
             email,
             username,
             password: hashedPassword,
             shortenedURL,
+            profilePicURL:uploadedPic
         });
 
         await User.create(newUser).then((createdUser) => {
