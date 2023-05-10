@@ -18,6 +18,33 @@ const upload = multer({
 
 // ===========================all routes===========================
 // =========================Create=========================
+
+
+/**
+ * @swagger
+ * /user/login: 
+ *   post:
+ *     summary: Login user.
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               email:
+ *                 type: string
+ *                 description: The user's email.
+ *                 example: example@email.com
+ *               password:
+ *                 type: string
+ *                 description: The user's password.
+ *                 example: password
+ *     responses:
+ *       201:
+ *         ...
+ */ 
+
 router.post("/login", userController.loginUser);
 router.post("/", upload.single("file"), userController.createUser);
 // =========================Read=========================
