@@ -2,7 +2,11 @@ const User = require("../Models/UserModel");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 
-const { S3Client, PutObjectCommand } = require("@aws-sdk/client-s3");
+const {
+    S3Client,
+    PutObjectCommand,
+    DeleteObjectCommand,
+} = require("@aws-sdk/client-s3");
 
 const multer = require("multer");
 const storage = multer.memoryStorage();
@@ -33,7 +37,6 @@ const s3 = new S3Client({
     secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
     region: process.env.AWS_REGION,
     bucket: process.env.AWS_BUCKET_NAME,
-    
 });
 
 // =========================Create=========================
@@ -136,20 +139,21 @@ const createUser = async (req, res) => {
         const hashedPassword = await bcrypt.hash(password, salt);
 
         // if file
-        let uploadedPic ="";
+        let uploadedPic = "";
         if (file != null) {
-            const key = `${generateShortenedID()}-${file.originalname}`
+            const key = `${generateShortenedID()}-${file.originalname}`;
             const param = {
                 Bucket: process.env.AWS_BUCKET_NAME,
                 Key: key,
                 Body: file.buffer,
-                ContentType: file.mimetype
+                ContentType: file.mimetype,
             };
             // const uploadedProfilePic = await s3.send(
             //     new PutObjectCommand(param)
             // );
-            await s3.send(new PutObjectCommand(param)).then(()=>{
-                uploadedPic = process.env.AWS_S3_BUCKET_LINK+key
+            await s3.send(new PutObjectCommand(param)).then(() => {
+                uploadedPic = key;
+                // process.env.AWS_S3_BUCKET_LINK+key
             });
             // console.log("uploadedProfilePic",uploadedProfilePic);
         }
@@ -160,7 +164,7 @@ const createUser = async (req, res) => {
             username,
             password: hashedPassword,
             shortenedURL,
-            profilePicURL:uploadedPic
+            profilePicURL: uploadedPic,
         });
 
         await User.create(newUser).then((createdUser) => {
@@ -295,6 +299,120 @@ const changeUsername = async (req, res) => {
     }
 };
 
+const changeProfilePic = async (req, res) => {
+    // input:
+    // params:
+    // userId (database generated id of user)
+    // file (new profile pic)
+    const { currUser, params, file } = req;
+    const { userId } = params;
+
+    try {
+        if (!userMatch(currUser._id, userId)) {
+            return res.status(403).json({ message: "Unauthorised" });
+        }
+
+        const validUser = await getUserByDatabaseID(userId);
+        if (validUser == null) {
+            return res.status(404).json({ message: "User does not exist" });
+        }
+        // if file
+        let uploadedPic = "";
+        if (file != null) {
+            const previousPic = validUser.profilePicURL;
+            // delete profile pic
+            if (previousPic) {
+                const deletePicParam = {
+                    Bucket: process.env.AWS_BUCKET_NAME,
+                    Key: previousPic,
+                };
+                await s3.send(new DeleteObjectCommand(deletePicParam));
+            }
+
+            // new profile pic
+            const key = `${generateShortenedID()}-${file.originalname}`;
+            const newPicParam = {
+                Bucket: process.env.AWS_BUCKET_NAME,
+                Key: key,
+                Body: file.buffer,
+                ContentType: file.mimetype,
+            };
+            await s3.send(new PutObjectCommand(newPicParam)).then(() => {
+                uploadedPic = key;
+            });
+            User.updateOne(
+                {
+                    _id: userId,
+                },
+                {
+                    profilePicURL: uploadedPic,
+                }
+            ).then(() => {
+                return res.status(200).json({
+                    message: "User profile picture successfully changed",
+                });
+            });
+        } else {
+            return res.status(400).json({
+                message: "Please upload a picture.",
+            });
+        }
+    } catch (err) {
+        return res.status(500).json({
+            message: err,
+        });
+    }
+};
+
+const removeProfilePic = async (req, res) => {
+    // input:
+    // params:
+    // userId (database generated id of user)
+
+    const { currUser, params } = req;
+    const { userId } = params;
+    try {
+        if (!userMatch(currUser._id, userId)) {
+            return res.status(403).json({ message: "Unauthorised" });
+        }
+
+        const validUser = await getUserByDatabaseID(userId);
+        if (validUser == null) {
+            return res.status(404).json({ message: "User does not exist" });
+        }
+        // if file
+        const previousPic = validUser.profilePicURL;
+        // delete profile pic
+        if (previousPic) {
+            const deletePicParam = {
+                Bucket: process.env.AWS_BUCKET_NAME,
+                Key: previousPic,
+            };
+            await s3.send(new DeleteObjectCommand(deletePicParam));
+            await User.updateOne(
+                {
+                    _id: userId,
+                },
+                {
+                    profilePicURL: "",
+                }
+            ).then(() => {
+                return res.status(200).json({
+                    message: "User profile picture successfully removed",
+                });
+            });
+        } else {
+            return res.status(200).json({
+                message: "User profile picture successfully removed",
+            });
+        }
+    } catch (err) {
+        return res.status(500).json({
+            message: err,
+        });
+    }
+};
+
 const refreshShortenedURL = async (req, res) => {
     // input:
     // params:
@@ -367,6 +485,8 @@ module.exports = {
     findUserByGenId,
     findUserByUserName,
     changeUsername,
+    changeProfilePic,
+    removeProfilePic,
     refreshShortenedURL,
     deleteUser,
 };

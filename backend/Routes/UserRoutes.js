@@ -54,7 +54,10 @@ router.get("/id/:genId", userController.findUserByGenId);
 router.get("/:username", userController.findUserByUserName);
 // =========================Update=========================
 router.put("/:userId", protection, userController.changeUsername);
+router.put("/p/:userId",upload.single("file"),protection,userController.changeProfilePic)
+router.put("/p/d/:userId",protection,userController.removeProfilePic)
 router.put("/r/:userId", protection, userController.refreshShortenedURL);
+
 // =========================Delete=========================
 router.delete("/:userId", protection, userController.deleteUser);
 // ===========================export routes===========================
