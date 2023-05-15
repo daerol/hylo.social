@@ -167,6 +167,7 @@ const deleteLinkById = async (req, res) => {
 };
 module.exports = {
     createLink,
+    findAllLinks,
     getUserLinksByUserId,
     updateLinkById,
     deleteLinkById,

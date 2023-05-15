@@ -104,7 +104,7 @@ router.post("/", upload.single("file"), userController.createUser);
  *      description: Get all users in database
  *      responses:
  *          200:
- *              description: To test Get method 
+ *              description: Users returned
  *          500:
  *              description: Something went wrong
  */
@@ -210,10 +210,10 @@ router.get("/:username", userController.findUserByUserName);
  *                  schema:
  *                      type: object
  *                      properties:
- *                      username:
- *                          type: string
- *                          description: The user's usernmae.
- *                          example: testusername
+ *                           username:
+ *                              type: string
+ *                              description: The user's usernmae.
+ *                              example: testusername
  *      responses:
  *          200:
  *              description: Username successfully updated
@@ -233,6 +233,7 @@ router.put("/:userId", protection, userController.changeUsername);
  *      summary: This allows users to change their profile picture
  *      tags:
  *      - users
+ *      - protected
  *      description: Replaces profile pic of a user.
  *      parameters:
  *          - in: path
@@ -240,7 +241,7 @@ router.put("/:userId", protection, userController.changeUsername);
  *            required: true
  *            description: User unique generated ID (can be regenerated)
  *            schema:
- *              type: string
+ *                  type: string
  * 
  *      requestBody:
  *          required: true
@@ -249,10 +250,9 @@ router.put("/:userId", protection, userController.changeUsername);
  *                  schema:
  *                      type: object
  *                      properties:
- *                      file:
- *                          description: The new profile pic
- *                          type: string
- *                          format: binary
+ *                          file:
+ *                              type: string
+ *                              format: binary
  *
  *      responses:
  *          200:

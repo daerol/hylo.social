@@ -47,7 +47,9 @@ const loginUser = async (req, res) => {
     // password(string)
     // output:
     // token (generated jwt token after login)
-    const { email, password } = req.body;
+    const {body} = req
+    const { email, password } = body;
+    console.log({email,password})
     try {
         const existingUser = await User.findOne({ email });
         if (existingUser == null) {
@@ -90,6 +92,7 @@ const createUser = async (req, res) => {
     try {
         const { body, file } = req;
         const { email, username, password } = body;
+        console.log({ email, username, password })
         // check for valid email
         const EMAIL_REGEX =
             /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
